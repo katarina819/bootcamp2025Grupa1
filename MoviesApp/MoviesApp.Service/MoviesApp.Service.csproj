@@ -6,4 +6,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\MoviesApp.Model\MoviesApp.Model.csproj" />
+    <ProjectReference Include="..\MoviesApp.Repository\MoviesApp.Repository.csproj" />
+  </ItemGroup>
+
 </Project>
