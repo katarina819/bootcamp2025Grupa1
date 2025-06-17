@@ -1,4 +1,5 @@
-﻿using MoviesApp.Repository.Common;
+﻿using MoviesApp.Model;
+using MoviesApp.Repository.Common;
 using Npgsql;
 using System;
 using System.Collections;
@@ -38,7 +39,7 @@ namespace MoviesApp.Repository
                             Duration = reader.GetInt32(2),
                             Rating = reader.GetFloat(3),
                             ReleaseYear = reader.GetInt32(4),
-                            DescriptionAttribute = reader.GetString(5)
+                            Description = reader.GetString(5)
                         };
                         movies.Add(movie);
 
@@ -46,6 +47,85 @@ namespace MoviesApp.Repository
                 }
             }
             return movies;
+        }
+
+        public async Task DeleteMovieAsync(Guid id)
+        {
+            var query = "DELETE FROM \"Movie\" WHERE \"Id\" = @id;";
+
+            if (_connection.State != System.Data.ConnectionState.Open)
+            {
+                await _connection.OpenAsync();
+            }
+
+            using (var command = new NpgsqlCommand(query, _connection))
+            {
+                command.Parameters.AddWithValue("@id", id);
+            }
+        }
+
+        public async Task UpdateMovieAsync(Movie movie)
+        {
+            var query = "UPDATE \"Movie\" SET \"Name\" = @name, \"Duration\" = @duration, \"Rating\" = @rating, \"ReleaseYear\" = @releaseYear, \"Description\" = @description WHERE \"Id\" = @id;";
+            if (_connection.State != System.Data.ConnectionState.Open)
+            {
+                await _connection.OpenAsync();
+            }
+
+            using (var command = new NpgsqlCommand(query, _connection))
+            {
+                command.Parameters.AddWithValue("@name", movie.Name);
+                command.Parameters.AddWithValue("@duration", movie.Duration);
+                command.Parameters.AddWithValue("@rating", movie.Rating);
+                command.Parameters.AddWithValue("@releaseYear", movie.ReleaseYear);
+                command.Parameters.AddWithValue("@description", movie.Description);
+                command.Parameters.AddWithValue("@id", movie.Id);
+                command.ExecuteNonQuery();
+            }
+        }
+
+        public async Task AddMovieAsync(Movie movie)
+        {
+            var query = "INSERT INTO \"Movie\" VALUES (@id, @name, @duration, @rating, @releaseYear, @description)";
+            if (_connection.State != System.Data.ConnectionState.Open)
+            {
+                await _connection.OpenAsync();
+            }
+            using (var command = new NpgsqlCommand(query, _connection))
+            {
+                command.Parameters.AddWithValue("@id", movie.Id);
+                command.Parameters.AddWithValue("@name", movie.Name);
+                command.Parameters.AddWithValue("@duration", movie.Duration);
+                command.Parameters.AddWithValue("@rating", movie.Rating);
+                command.Parameters.AddWithValue("@releaseYear", movie.ReleaseYear);
+                command.Parameters.AddWithValue("@description", movie.Description);
+            }
+        }
+
+        public async Task<Movie> GetMovieByIdAsync(Guid id)
+        {
+            var query = "SELECT * FROM \"Movie\" WHERE \"Id\" = @id;";
+            if (_connection.State != System.Data.ConnectionState.Open)
+            {
+                await _connection.OpenAsync();
+            }
+            using (var command = new NpgsqlCommand(query, _connection))
+            {
+                command.Parameters.AddWithValue("@id", id);
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    await reader.ReadAsync();
+                    return new Movie
+                    {
+                        Id = reader.GetGuid(0),
+                        Name = reader.GetString(1),
+                        Duration = reader.GetInt32(2),
+                        Rating = reader.GetFloat(3),
+                        ReleaseYear = reader.GetInt32(4),
+                        Description = reader.GetString(5)
+                    };
+                }
+            }
         }
     }
 }

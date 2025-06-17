@@ -1,4 +1,5 @@
-﻿using MoviesApp.Repository.Common;
+﻿using MoviesApp.Model;
+using MoviesApp.Repository.Common;
 using MoviesApp.Service.Common;
 using System;
 using System.Collections.Generic;
@@ -19,6 +20,24 @@ namespace MoviesApp.Service
         public async Task<IList<object>> GetAllMoviesAsync()
         {
             return await _movieRepository.GetAllMoviesAsync();
+        }
+
+        public async Task DeleteMovieAsync(Guid id)
+        {
+            await _movieRepository.DeleteMovieAsync(id);
+        }
+        public async Task UpdateMovieAsync(Movie movie)
+        {
+            await _movieRepository.UpdateMovieAsync(movie);
+        }
+        public async Task AddMovieAsync(Movie movie)
+        {
+            await _movieRepository.AddMovieAsync(movie);
+        }
+
+        public async Task<Movie> GetMovieByIdAsync(Guid id)
+        {
+            return await _movieRepository.GetMovieByIdAsync(id);
         }
     }
 }
