@@ -8,7 +8,9 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MoviesApp.Model\MoviesApp.Model.csproj" />
+    <ProjectReference Include="..\MoviesApp.Repository.Common\MoviesApp.Repository.Common.csproj" />
     <ProjectReference Include="..\MoviesApp.Repository\MoviesApp.Repository.csproj" />
+    <ProjectReference Include="..\MoviesApp.Service.Common\MoviesApp.Service.Common.csproj" />
   </ItemGroup>
 
 </Project>
