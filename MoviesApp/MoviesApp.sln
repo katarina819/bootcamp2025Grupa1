@@ -11,6 +11,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoviesApp.Repository", "Mov
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoviesApp.Service", "MoviesApp.Service\MoviesApp.Service.csproj", "{90C539FB-AEA1-A74F-A224-26C422AB584A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoviesApp.Repository.Common", "MoviesApp.Repository.Common\MoviesApp.Repository.Common.csproj", "{207ED37B-073D-4537-901E-C244791C3177}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MoviesApp.Service.Common", "MoviesApp.Service.Common\MoviesApp.Service.Common.csproj", "{3570DF54-7DF0-474C-8F03-77F78E525CAE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -33,6 +37,14 @@ Global
 		{90C539FB-AEA1-A74F-A224-26C422AB584A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{90C539FB-AEA1-A74F-A224-26C422AB584A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{90C539FB-AEA1-A74F-A224-26C422AB584A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{207ED37B-073D-4537-901E-C244791C3177}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{207ED37B-073D-4537-901E-C244791C3177}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{207ED37B-073D-4537-901E-C244791C3177}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{207ED37B-073D-4537-901E-C244791C3177}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3570DF54-7DF0-474C-8F03-77F78E525CAE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3570DF54-7DF0-474C-8F03-77F78E525CAE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3570DF54-7DF0-474C-8F03-77F78E525CAE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3570DF54-7DF0-474C-8F03-77F78E525CAE}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
