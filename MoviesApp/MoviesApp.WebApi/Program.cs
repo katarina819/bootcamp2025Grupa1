@@ -25,8 +25,12 @@ builder.Host.ConfigureContainer<ContainerBuilder>(containerBuilder =>
         .InstancePerLifetimeScope();
     containerBuilder.RegisterType<MovieService>().As<IMovieService>().InstancePerLifetimeScope();
     containerBuilder.RegisterType<MovieRepository>().As<IMovieRepository>().InstancePerLifetimeScope();
+    
     containerBuilder.RegisterType<GenreService>().As<IGenreService>().InstancePerLifetimeScope();
     containerBuilder.RegisterType<GenreRepository>().As<IGenreRepository>().InstancePerLifetimeScope();
+    
+    containerBuilder.RegisterType<LanguageService>().As<ILanguageService>().InstancePerLifetimeScope();
+    containerBuilder.RegisterType<LanguageRepository>().As<ILanguageRepository>().InstancePerLifetimeScope();
 });
 
 // Add services to the container.
