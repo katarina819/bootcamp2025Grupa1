@@ -105,6 +105,44 @@ namespace MoviesAppRepository
             }
         }
 
+        public async Task<IList<string>> GetGenresByMovieIdAsync(Guid movieId)
+        {
+            var genres = new List<string>();
+
+            var query = @"
+        SELECT g.""Id"", g.""Name""
+        FROM ""MovieGenre"" mg
+        LEFT JOIN ""Genre"" g ON mg.""GenreId"" = g.""Id""
+        WHERE mg.""MovieId"" = @id;
+    ";
+
+            if (_connection.State != System.Data.ConnectionState.Open)
+            {
+                await _connection.OpenAsync();
+            }
+
+            using (var command = new NpgsqlCommand(query, _connection))
+            {
+                command.Parameters.AddWithValue("id", movieId);
+                
+
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        genres.Add
+                        (
+                            
+                             reader.GetString(1)
+                        );
+                    }
+                }
+            }
+
+            return genres;
+        }
+
+
 
 
 

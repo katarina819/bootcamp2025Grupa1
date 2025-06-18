@@ -13,6 +13,7 @@ namespace MoviesAppRepository
         Task UpdateGenreAsync(Genre genre);
         Task AddGenreAsync(Genre genre);
         Task<Genre> GetGenreByIdAsync(Guid id);
+        Task<IList<string>> GetGenresByMovieIdAsync(Guid movieId);
 
 
 

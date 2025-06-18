@@ -33,9 +33,18 @@ namespace MoviesAppWebAPI.Controllers
         }
 
         [HttpPost]
-        public async Task AddGenreAsync(Genre genre)
+        public async Task AddGenreAsync(string name)
         {
-            await _genreService.AddGenreAsync (genre);
+
+
+            Genre genre = new Genre
+            {
+                Id = Guid.NewGuid(),
+                Name = name,
+            };
+
+            await _genreService.AddGenreAsync(genre);
+
         }
 
         [HttpGet ("get-genre-by-id")] 
@@ -44,6 +53,12 @@ namespace MoviesAppWebAPI.Controllers
             return await _genreService.GetGenreByIdAsync (id);
 
 
+        }
+
+        [HttpGet ("get-genre-movie-by-id")]
+        public async Task<IList<string>> GetGenresByMovieIdAsync(Guid movieId)
+        {
+            return await _genreService.GetGenresByMovieIdAsync(movieId);
         }
 
 
