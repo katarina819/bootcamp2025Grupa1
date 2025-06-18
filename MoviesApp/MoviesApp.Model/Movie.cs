@@ -17,10 +17,10 @@ namespace MoviesApp.Model
         public required string Name { get; set; }
 
         [Required(ErrorMessage = "Duration is required.")]
-        [Range(1, 600, ErrorMessage = "Duration cannot exceed 600 minutes.")]
+        [Range(1, 600, ErrorMessage = "Duration must be in range 1-600 minutes.")]
         public required int Duration { get; set; }
 
-        [Range(0, 10, ErrorMessage = "Rating must be in range 1-10.")]
+        [Range(0, 10, ErrorMessage = "Rating must be in range 0-10.")]
         public float? Rating { get; set; }
 
         [Required(ErrorMessage = "Release year is required.")]

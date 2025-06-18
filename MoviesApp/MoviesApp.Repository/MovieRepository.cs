@@ -54,7 +54,7 @@ namespace MoviesApp.Repository
             using (var command = new NpgsqlCommand(query, _connection))
             {
                 command.Parameters.AddWithValue("@id", id);
-                command.ExecuteNonQuery();
+                await command.ExecuteNonQueryAsync();
             }
         }
 
@@ -74,7 +74,7 @@ namespace MoviesApp.Repository
                 command.Parameters.AddWithValue("@releaseYear", movie.ReleaseYear);
                 command.Parameters.AddWithValue("@description", movie.Description);
                 command.Parameters.AddWithValue("@id", movie.Id);
-                command.ExecuteNonQuery();
+                await command.ExecuteNonQueryAsync();
             }
         }
 
@@ -93,7 +93,7 @@ namespace MoviesApp.Repository
                 command.Parameters.AddWithValue("@rating", movie.Rating);
                 command.Parameters.AddWithValue("@releaseYear", movie.ReleaseYear);
                 command.Parameters.AddWithValue("@description", movie.Description);
-                command.ExecuteNonQuery ();
+                await command.ExecuteNonQueryAsync();
             }
         }
 
@@ -107,7 +107,7 @@ namespace MoviesApp.Repository
             using (var command = new NpgsqlCommand(query, _connection))
             {
                 command.Parameters.AddWithValue("@id", id);
-                command.ExecuteNonQuery();
+                
                 using (var reader = await command.ExecuteReaderAsync())
                 {
                     await reader.ReadAsync();

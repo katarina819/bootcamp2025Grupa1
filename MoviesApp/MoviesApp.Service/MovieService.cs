@@ -24,6 +24,11 @@ namespace MoviesApp.Service
 
         public async Task DeleteMovieAsync(Guid id)
         {
+            var movie = await _movieRepository.GetMovieByIdAsync(id);
+            if (movie == null)
+            {
+                throw new Exception();
+            }
             await _movieRepository.DeleteMovieAsync(id);
         }
         public async Task UpdateMovieAsync(Movie movie)
@@ -37,7 +42,12 @@ namespace MoviesApp.Service
 
         public async Task<Movie> GetMovieByIdAsync(Guid id)
         {
-            return await _movieRepository.GetMovieByIdAsync(id);
+            var movie = await _movieRepository.GetMovieByIdAsync(id);
+            if(movie == null)
+            {
+                throw new Exception();
+            }
+            return movie;
         }
     }
 }
