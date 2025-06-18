@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using MoviesAppModel;
+using MoviesApp.Model;
 using MoviesAppService;
 
 namespace MoviesAppWebAPI.Controllers
@@ -38,7 +38,7 @@ namespace MoviesAppWebAPI.Controllers
 
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] GenreModels genre)
+        public async Task<IActionResult> Create([FromBody] Genre genre)
         {
             // 1. Model-level validacija (npr. [Required], [StringLength])
             if (!ModelState.IsValid)
@@ -68,7 +68,7 @@ namespace MoviesAppWebAPI.Controllers
 
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(Guid id, [FromBody] GenreModels genre)
+        public async Task<IActionResult> Update(Guid id, [FromBody] Genre genre)
         {
             if (genre == null)
                 return BadRequest("Genre data is required.");

@@ -1,8 +1,8 @@
 ﻿using System.Data;
 using System.Text;
-using MoviesAppModel;
 using Npgsql;
 using Microsoft.Extensions.Logging;
+using MoviesApp.Model;
 
 namespace MoviesAppRepository
 {
@@ -17,9 +17,9 @@ namespace MoviesAppRepository
             _logger = logger;
         }
 
-        public async Task<IEnumerable<GenreModels>> GetAllAsync(string? search, string? sort, int? page, int? pageSize)
+        public async Task<IEnumerable<Genre>> GetAllAsync(string? search, string? sort, int? page, int? pageSize)
         {
-            var genres = new List<GenreModels>();
+            var genres = new List<Genre>();
 
             await using var conn = new NpgsqlConnection(_connectionString);
             await conn.OpenAsync();
@@ -58,7 +58,7 @@ namespace MoviesAppRepository
             await using var reader = await cmd.ExecuteReaderAsync();
             while (await reader.ReadAsync())
             {
-                genres.Add(new GenreModels
+                genres.Add(new Genre
                 {
                     Id = reader.GetGuid(0),
                     Name = reader.GetString(1)
@@ -69,7 +69,7 @@ namespace MoviesAppRepository
         }
 
 
-        public async Task<GenreModels?> GetByIdAsync(Guid id)
+        public async Task<Genre?> GetByIdAsync(Guid id)
         {
             using var conn = new NpgsqlConnection(_connectionString);
             await conn.OpenAsync();
@@ -80,7 +80,7 @@ namespace MoviesAppRepository
             using var reader = await cmd.ExecuteReaderAsync();
             if (await reader.ReadAsync())
             {
-                return new GenreModels
+                return new Genre
                 {
                     Id = reader.GetGuid(0),
                     Name = reader.GetString(1)
@@ -90,7 +90,7 @@ namespace MoviesAppRepository
             return null;
         }
 
-        public async Task AddAsync(GenreModels genre)
+        public async Task AddAsync(Genre genre)
         {
             if (genre.Id == Guid.Empty)
                 genre.Id = Guid.NewGuid();
@@ -105,7 +105,7 @@ namespace MoviesAppRepository
             await cmd.ExecuteNonQueryAsync();
         }
 
-        public async Task UpdateAsync(GenreModels genre)
+        public async Task UpdateAsync(Genre genre)
         {
             using var conn = new NpgsqlConnection(_connectionString);
             await conn.OpenAsync();
@@ -128,9 +128,9 @@ namespace MoviesAppRepository
             await cmd.ExecuteNonQueryAsync();
         }
 
-        public async Task<IEnumerable<GenreModels>> GetFilteredAsync(string? search, string? sort, int page, int pageSize)
+        public async Task<IEnumerable<Genre>> GetFilteredAsync(string? search, string? sort, int page, int pageSize)
         {
-            var genres = new List<GenreModels>();
+            var genres = new List<Genre>();
 
             await using var conn = new NpgsqlConnection(_connectionString);
             await conn.OpenAsync();
@@ -165,7 +165,7 @@ namespace MoviesAppRepository
             await using var reader = await cmd.ExecuteReaderAsync();
             while (await reader.ReadAsync())
             {
-                genres.Add(new GenreModels
+                genres.Add(new Genre
                 {
                     Id = reader.GetGuid(0),
                     Name = reader.GetString(1)

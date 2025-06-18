@@ -1,9 +1,9 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using System;
-using MoviesAppModel;
 using MoviesAppRepository;
 using Microsoft.Extensions.Logging;
+using MoviesApp.Model;
 
 namespace MoviesAppService
 {
@@ -18,12 +18,12 @@ namespace MoviesAppService
             _logger = logger;
         }
 
-        public Task<IEnumerable<GenreModels>> GetAllAsync(string? name, string? sort, int? page, int? pageSize)
+        public Task<IEnumerable<Genre>> GetAllAsync(string? name, string? sort, int? page, int? pageSize)
         {
             return _repository.GetAllAsync(name, sort, page, pageSize);
         }
-        public Task<GenreModels?> GetByIdAsync(Guid id) => _repository.GetByIdAsync(id);
-        public async Task AddAsync(GenreModels genre)
+        public Task<Genre?> GetByIdAsync(Guid id) => _repository.GetByIdAsync(id);
+        public async Task AddAsync(Genre genre)
         {
             if (string.IsNullOrWhiteSpace(genre.Name))
                 throw new ArgumentException("Genre name cannot be empty");
@@ -35,7 +35,7 @@ namespace MoviesAppService
             await _repository.AddAsync(genre);
         }
 
-        public async Task UpdateAsync(GenreModels genre)
+        public async Task UpdateAsync(Genre genre)
         {
             if (string.IsNullOrWhiteSpace(genre.Name))
                 throw new ArgumentException("Genre name cannot be empty");
@@ -56,7 +56,7 @@ namespace MoviesAppService
         }
 
 
-        public async Task<IEnumerable<GenreModels>> GetFilteredAsync(string? name, string? sort, int page, int pageSize)
+        public async Task<IEnumerable<Genre>> GetFilteredAsync(string? name, string? sort, int page, int pageSize)
         {
             _logger.LogInformation("Fetching filtered genres. Name filter: {Name}, Sort: {Sort}, Page: {Page}, PageSize: {PageSize}",
                 name, sort, page, pageSize);

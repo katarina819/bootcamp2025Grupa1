@@ -1,4 +1,4 @@
-﻿using MoviesAppModel;
+﻿using MoviesApp.Model;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -7,15 +7,15 @@ namespace MoviesAppService
 {
     public interface IGenreService
     {
-        Task<IEnumerable<GenreModels>> GetAllAsync(
+        Task<IEnumerable<Genre>> GetAllAsync(
             string? search = null,
             string? sort = null,
             int? page = null,
             int? pageSize = null);
 
-        Task<GenreModels?> GetByIdAsync(Guid id);
-        Task AddAsync(GenreModels genre);
-        Task UpdateAsync(GenreModels genre);
+        Task<Genre?> GetByIdAsync(Guid id);
+        Task AddAsync(Genre genre);
+        Task UpdateAsync(Genre genre);
         Task DeleteAsync(Guid id);
     }
 }

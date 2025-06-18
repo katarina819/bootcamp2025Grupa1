@@ -5,12 +5,13 @@ using MoviesApp.Repository;
 using MoviesApp.Repository.Common;
 using MoviesApp.Service;
 using MoviesApp.Service.Common;
+using MoviesAppRepository;
+using MoviesAppService;
 using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-    ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory());
 builder.Services.AddControllers();
@@ -24,10 +25,8 @@ builder.Host.ConfigureContainer<ContainerBuilder>(containerBuilder =>
         .InstancePerLifetimeScope();
     containerBuilder.RegisterType<MovieService>().As<IMovieService>().InstancePerLifetimeScope();
     containerBuilder.RegisterType<MovieRepository>().As<IMovieRepository>().InstancePerLifetimeScope();
-    containerBuilder.RegisterAssemblyTypes(typeof(MovieRepository).Assembly)
-        .Where(t => t.Name.EndsWith("Repository"))
-        .AsImplementedInterfaces()
-        .InstancePerLifetimeScope();
+    containerBuilder.RegisterType<GenreService>().As<IGenreService>().InstancePerLifetimeScope();
+    containerBuilder.RegisterType<GenreRepository>().As<IGenreRepository>().InstancePerLifetimeScope();
 });
 
 // Add services to the container.
