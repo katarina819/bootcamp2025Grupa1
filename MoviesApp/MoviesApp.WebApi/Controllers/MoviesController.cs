@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿/*using Microsoft.AspNetCore.Mvc;
 using MoviesAppModel;
 using MoviesAppService;
 
@@ -73,4 +73,4 @@ namespace MoviesAppWebAPI.Controllers
             return NoContent();
         }
     }
-}
+}*/
