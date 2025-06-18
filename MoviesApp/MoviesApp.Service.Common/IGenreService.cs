@@ -7,16 +7,11 @@ namespace MoviesAppService
 {
     public interface IGenreService
     {
-        Task<IEnumerable<Genre>> GetAllAsync(
-            string? search = null,
-            string? sort = null,
-            int? page = null,
-            int? pageSize = null);
-
-        Task<Genre?> GetByIdAsync(Guid id);
-        Task AddAsync(Genre genre);
-        Task UpdateAsync(Genre genre);
-        Task DeleteAsync(Guid id);
+        Task<IList<object>> GetAllGenreAsync();
+        Task DeleteGenreAsync(Guid id);
+        Task UpdateGenreAsync(Genre genre);
+        Task AddGenreAsync(Genre genre);
+        Task<Genre> GetGenreByIdAsync(Guid id);
     }
 }
 
