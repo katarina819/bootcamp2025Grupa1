@@ -1,6 +1,7 @@
 ﻿using Npgsql;
 using MoviesApp.Model;
 using MoviesApp.Pagination;
+using MoviesApp.Repository.Common;
 
 namespace MoviesApp.Repository
 {

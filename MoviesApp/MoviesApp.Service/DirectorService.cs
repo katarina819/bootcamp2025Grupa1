@@ -2,7 +2,7 @@
 using MoviesApp.DTO;
 using MoviesApp.Model;
 using MoviesApp.Pagination;
-using MoviesApp.Repository;
+using MoviesApp.Repository.Common;
 using MoviesApp.Service.Common;
 
 namespace MoviesApp.Service 

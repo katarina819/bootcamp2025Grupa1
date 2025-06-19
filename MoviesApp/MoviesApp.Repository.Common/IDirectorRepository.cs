@@ -2,7 +2,7 @@
 using MoviesApp.Model;
 
 
-namespace MoviesApp.Repository
+namespace MoviesApp.Repository.Common
 {
     public interface IDirectorRepository
     {
