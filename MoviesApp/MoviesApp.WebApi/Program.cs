@@ -4,12 +4,15 @@ using MoviesApp.Repository;
 using MoviesApp.Repository.Common;
 using MoviesApp.Service;
 using MoviesApp.Service.Common;
+using MoviesAppRepository;
+using MoviesAppService;
 using MoviesApp.Mapping;
 using Npgsql;
 using AutoMapper;
 
 var builder = WebApplication.CreateBuilder(args);
 
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 // Use Autofac
 builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory());
 
@@ -29,6 +32,12 @@ builder.Host.ConfigureContainer<ContainerBuilder>(containerBuilder =>
 
     containerBuilder.RegisterType<MovieService>().As<IMovieService>().InstancePerLifetimeScope();
     containerBuilder.RegisterType<MovieRepository>().As<IMovieRepository>().InstancePerLifetimeScope();
+    
+    containerBuilder.RegisterType<GenreService>().As<IGenreService>().InstancePerLifetimeScope();
+    containerBuilder.RegisterType<GenreRepository>().As<IGenreRepository>().InstancePerLifetimeScope();
+    
+    containerBuilder.RegisterType<LanguageService>().As<ILanguageService>().InstancePerLifetimeScope();
+    containerBuilder.RegisterType<LanguageRepository>().As<ILanguageRepository>().InstancePerLifetimeScope();
 
     containerBuilder.RegisterAssemblyTypes(typeof(MovieRepository).Assembly)
         .Where(t => t.Name.EndsWith("Repository"))

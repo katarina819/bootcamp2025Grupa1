@@ -1,72 +1,51 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Data.Common;
 using System.Threading.Tasks;
-using System;
-using MoviesAppModel;
-using MoviesAppRepository;
 using Microsoft.Extensions.Logging;
+using MoviesApp.Model;
+using MoviesAppRepository;
+using Npgsql;
 
 namespace MoviesAppService
 {
     public class GenreService : IGenreService
     {
-        private readonly IGenreRepository _repository;
-        private readonly ILogger<GenreService> _logger;
+        private readonly IGenreRepository _genreRepository;
 
-        public GenreService(IGenreRepository repository, ILogger<GenreService> logger)
+        public GenreService(IGenreRepository genreRepository)
         {
-            _repository = repository;
-            _logger = logger;
+            _genreRepository = genreRepository;
         }
 
-        public Task<IEnumerable<GenreModels>> GetAllAsync(string? name, string? sort, int? page, int? pageSize)
-        {
-            return _repository.GetAllAsync(name, sort, page, pageSize);
-        }
-        public Task<GenreModels?> GetByIdAsync(Guid id) => _repository.GetByIdAsync(id);
-        public async Task AddAsync(GenreModels genre)
-        {
-            if (string.IsNullOrWhiteSpace(genre.Name))
-                throw new ArgumentException("Genre name cannot be empty");
+        public async Task<IList<object>> GetAllGenreAsync()
 
-            var existingGenres = await _repository.GetAllAsync(genre.Name, null, 1, 1);
-            if (existingGenres.Any(g => g.Name.Equals(genre.Name, StringComparison.OrdinalIgnoreCase)))
-                throw new InvalidOperationException("Genre with this name already exists.");
-
-            await _repository.AddAsync(genre);
+        {
+            return await _genreRepository.GetAllGenreAsync();
         }
 
-        public async Task UpdateAsync(GenreModels genre)
+        public async Task DeleteGenreAsync(Guid id)
         {
-            if (string.IsNullOrWhiteSpace(genre.Name))
-                throw new ArgumentException("Genre name cannot be empty");
+            await _genreRepository.DeleteGenreAsync(id);
 
-            var existing = await _repository.GetByIdAsync(genre.Id);
-            if (existing == null)
-                throw new KeyNotFoundException("Genre not found");
-
-            await _repository.UpdateAsync(genre);
-        }
-        public async Task DeleteAsync(Guid id)
-        {
-            var existing = await _repository.GetByIdAsync(id);
-            if (existing == null)
-                throw new KeyNotFoundException("Genre not found");
-
-            await _repository.DeleteAsync(id);
         }
 
+        public async Task UpdateGenreAsync(Genre genre) 
+        { 
+            await _genreRepository.UpdateGenreAsync(genre);
+        }
 
-        public async Task<IEnumerable<GenreModels>> GetFilteredAsync(string? name, string? sort, int page, int pageSize)
+        public async Task AddGenreAsync(Genre genre)
         {
-            _logger.LogInformation("Fetching filtered genres. Name filter: {Name}, Sort: {Sort}, Page: {Page}, PageSize: {PageSize}",
-                name, sort, page, pageSize);
+            await _genreRepository.AddGenreAsync(genre);
+        }
 
-            var result = await _repository.GetFilteredAsync(name, sort, page, pageSize);
-
-            _logger.LogInformation("Fetched {Count} genres", result.Count());
-
-            return result;
+        public async Task<Genre> GetGenreByIdAsync(Guid id)
+        {
+            return await _genreRepository.GetGenreByIdAsync(id);
         }
     }
+
+      
 }
 
