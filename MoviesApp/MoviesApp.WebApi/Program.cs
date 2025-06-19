@@ -8,11 +8,9 @@ using MoviesAppRepository;
 using MoviesAppService;
 using MoviesApp.Mapping;
 using Npgsql;
-using AutoMapper;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 // Use Autofac
 builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory());
 
