@@ -1,5 +1,7 @@
-﻿using MoviesApp.DTO;
+﻿using AutoMapper;
+using MoviesApp.DTO;
 using MoviesApp.Model;
+using MoviesApp.Pagination;
 using MoviesApp.Repository.Common;
 using MoviesApp.Service.Common;
 using System;
@@ -13,14 +15,24 @@ namespace MoviesApp.Service
     public class MovieService : IMovieService
     {
         private readonly IMovieRepository _movieRepository;
-        public MovieService(IMovieRepository movieRepository)
+        private readonly IMapper _mapper;
+        public MovieService(IMovieRepository movieRepository, IMapper mapper)
         {
             _movieRepository = movieRepository;
+            _mapper = mapper;
         }
 
-        public async Task<IList<object>> GetAllMoviesAsync()
+        public async Task<Paginated<MovieDto>> GetAllMoviesAsync(int page = 1, int pageSize = 10)
         {
-            return await _movieRepository.GetAllMoviesAsync();
+            var pagedMovies = await _movieRepository.GetAllMoviesAsync(page, pageSize);
+            return new Paginated<MovieDto>
+            {
+                Page = pagedMovies.Page,
+                PageSize = pagedMovies.PageSize,
+                TotalCount = pagedMovies.TotalCount,
+                Items = _mapper.Map<List<MovieDto>>(pagedMovies.Items)
+            };
+
         }
 
         public async Task DeleteMovieAsync(Guid id)

@@ -1,5 +1,6 @@
 ﻿using MoviesApp.DTO;
 using MoviesApp.Model;
+using MoviesApp.Pagination;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,7 +11,7 @@ namespace MoviesApp.Service.Common
 {
     public interface IMovieService
     {
-        Task<IList<object>> GetAllMoviesAsync();
+        Task<Paginated<MovieDto>> GetAllMoviesAsync(int page = 1, int pageSize = 10);
         Task DeleteMovieAsync(Guid id);
         Task UpdateMovieAsync(Movie movie);
         Task AddMovieAsync(Movie movie);

@@ -1,5 +1,6 @@
 ﻿using MoviesApp.DTO;
 using MoviesApp.Model;
+using MoviesApp.Pagination;
 using MoviesApp.Repository.Common;
 using Npgsql;
 using System;
@@ -18,37 +19,42 @@ namespace MoviesApp.Repository
     {
         public readonly NpgsqlConnection _connection;
         public MovieRepository(NpgsqlConnection connection) => _connection = connection;
-        public async Task<IList<object>> GetAllMoviesAsync()
+        public async Task<Paginated<Movie>> GetAllMoviesAsync(int page = 1, int pageSize = 10)
         {
-            var movies = new List<object>();
-            var query = "SELECT * FROM \"Movie\";";
+            var result = new Paginated<Movie>
+            {
+                Page = page,
+                PageSize = pageSize,
+                Items = new List<Movie>()
+            };
 
             if (_connection.State != System.Data.ConnectionState.Open)
             {
                 await _connection.OpenAsync();
             }
+            using var countRows = new NpgsqlCommand("SELECT COUNT(*) FROM \"Movie\"", _connection);
+            result.TotalCount = Convert.ToInt32(await countRows.ExecuteScalarAsync());
 
-            using (var command = new NpgsqlCommand(query, _connection))
+            var offset = (page - 1) * pageSize;
+            using var getRows = new NpgsqlCommand("SELECT * FROM \"Movie\" ORDER BY \"Name\" LIMIT @PageSize OFFSET @Offset", _connection);
+            getRows.Parameters.AddWithValue("PageSize", pageSize);
+            getRows.Parameters.AddWithValue("Offset", offset);
+
+            using var reader = await getRows.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
             {
-                using (var reader = await command.ExecuteReaderAsync())
+                result.Items.Add(new Movie
                 {
-                    while (await reader.ReadAsync())
-                    {
-                        var movie = new
-                        {
-                            Id = reader.GetGuid(0),
-                            Name = reader.GetString(1),
-                            Duration = reader.GetInt32(2),
-                            Rating = reader.GetFloat(3),
-                            ReleaseYear = reader.GetInt32(4),
-                            Description = reader.GetString(5)
-                        };
-                        movies.Add(movie);
+                    Id = reader.GetGuid(0),
+                    Name = reader.GetString(1),
+                    Duration = reader.GetInt32(2),
+                    Rating = reader.GetFloat(3),
+                    ReleaseYear = reader.GetInt32(4),
+                    Description = reader.GetString(5)
+                });
 
-                    }
-                }
             }
-            return movies;
+            return result;
         }
 
         public async Task DeleteMovieAsync(Guid id)

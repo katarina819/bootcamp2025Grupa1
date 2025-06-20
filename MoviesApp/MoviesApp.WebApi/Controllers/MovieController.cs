@@ -17,9 +17,10 @@ namespace MoviesApp.WebApi.Controllers
 
         [HttpGet("get-all-movies")]
 
-        public async Task<IList<object>> GetAllMoviesAsync()
+        public async Task<IActionResult> GetAllMoviesAsync([FromQuery] int page = 1, [FromQuery] int pageSize = 1)
         {
-            return await _movieService.GetAllMoviesAsync();
+            var movies = await _movieService.GetAllMoviesAsync(page, pageSize);
+            return Ok(movies);
         }
 
         [HttpDelete("delete-movie")]
@@ -30,9 +31,9 @@ namespace MoviesApp.WebApi.Controllers
                 await _movieService.DeleteMovieAsync(id);
                 return Ok("Movie deleted");
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return BadRequest(ex.Message);
+                return BadRequest($"Movie with id: {id} doesn't exist.");
             }
         }
 
@@ -82,9 +83,9 @@ namespace MoviesApp.WebApi.Controllers
             {
                 return await _movieService.GetMovieByIdAsync(id);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return BadRequest(ex.Message);
+                return BadRequest($"Movie with id: {id} doesn't exist.");
             }
         }
 
@@ -139,8 +140,17 @@ namespace MoviesApp.WebApi.Controllers
         
         [HttpGet("get-movie-details")]
 
-        public async Task<MovieDetailsDto> GetMovieDetails(Guid id)
+        public async Task<ActionResult<MovieDetailsDto>> GetMovieDetails(Guid id)
         {
+            try
+            {
+                Movie movieCheck = await _movieService.GetMovieByIdAsync(id);
+                
+            }
+            catch (Exception)
+            {
+                return BadRequest("Movie with id: {id} doesn't exist.");
+            }
             var movie = await _movieService.GetMovieByIdAsync(id);
             var movieGenres = await _movieService.GetGenresByMovieIdAsync(id);
             var movieLanguages = await _movieService.GetLanguagesByMovieIdAsync(id);
@@ -157,6 +167,7 @@ namespace MoviesApp.WebApi.Controllers
                 Genres = movieGenres,
                 Languages = movieLanguages
             };
+
 
         }
     }
