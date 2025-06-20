@@ -1,9 +1,6 @@
 ﻿using MoviesApp.Model;
 using MoviesApp.Repository.Common;
 using Npgsql;
-<<<<<<< HEAD
-
-=======
 using System;
 using System.Collections;
 using System.Collections.Generic;
@@ -13,7 +10,6 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
->>>>>>> d728994 (Added sort and filter methods.)
 
 namespace MoviesApp.Repository
 {
