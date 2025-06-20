@@ -1,4 +1,5 @@
-﻿using MoviesApp.Model;
+﻿using MoviesApp.DTO;
+using MoviesApp.Model;
 using MoviesApp.Repository.Common;
 using MoviesApp.Service.Common;
 using System;
@@ -58,6 +59,20 @@ namespace MoviesApp.Service
         public async Task<List<Movie>> GetMoviesFilterNameAsync(string filter)
         {
             return await _movieRepository.GetMoviesFilterNameAsync(filter);
+        }
+
+        public async Task<IList<string>> GetGenresByMovieIdAsync(Guid movieId)
+        {
+            return await _movieRepository.GetGenresByMovieIdAsync(movieId);
+        }
+
+        public async Task<IList<string>> GetLanguagesByMovieIdAsync(Guid movieId)
+        {
+            return await _movieRepository.GetLanguagesByMovieIdAsync(movieId);
+        }
+        public async Task<DirectorCreateDto> GetDirectorByMovieIdAsync(Guid movieId)
+        {
+            return await _movieRepository.GetDirectorByMovieIdAsync(movieId);
         }
     }
 }

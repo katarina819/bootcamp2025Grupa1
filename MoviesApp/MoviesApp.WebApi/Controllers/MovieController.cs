@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using MoviesApp.DTO;
 using MoviesApp.Model;
 using MoviesApp.Service.Common;
 
@@ -115,6 +116,48 @@ namespace MoviesApp.WebApi.Controllers
             }
             var filterLower = "%" + filter.ToLower() + "%";
             return await _movieService.GetMoviesFilterNameAsync(filterLower);
+        }
+
+        [HttpGet("get-genres-by-movie-id")]
+        public async Task<IList<string>> GetGenresByMovieIdAsync(Guid movieId)
+        {
+            return await _movieService.GetGenresByMovieIdAsync(movieId);
+        }
+
+        [HttpGet("get-languages-by-movie-id")]
+        public async Task<IList<string>> GetLanguagesByMovieIdAsync(Guid movieId)
+        {
+            return await _movieService.GetLanguagesByMovieIdAsync(movieId);
+        }
+
+        [HttpGet("get-director-by-movie-id")]
+
+        public async Task<DirectorCreateDto> GetDirectorByMovieIdAsync(Guid movieId)
+        {
+            return await _movieService.GetDirectorByMovieIdAsync(movieId);
+        }
+        
+        [HttpGet("get-movie-details")]
+
+        public async Task<MovieDetailsDto> GetMovieDetails(Guid id)
+        {
+            var movie = await _movieService.GetMovieByIdAsync(id);
+            var movieGenres = await _movieService.GetGenresByMovieIdAsync(id);
+            var movieLanguages = await _movieService.GetLanguagesByMovieIdAsync(id);
+            var movieDirector = await _movieService.GetDirectorByMovieIdAsync(id);
+
+            return new MovieDetailsDto
+            {
+                Name = movie.Name,
+                Duration = movie.Duration,
+                Rating = movie.Rating,
+                ReleaseYear = movie.ReleaseYear,
+                Description = movie.Description,
+                DirectorName = movieDirector.FirstName + " " + movieDirector.LastName,
+                Genres = movieGenres,
+                Languages = movieLanguages
+            };
+
         }
     }
 }

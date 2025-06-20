@@ -11,6 +11,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\MovieApp.DTO\MoviesApp.DTO.csproj" />
 		<ProjectReference Include="..\MoviesApp.Model\MoviesApp.Model.csproj" />
 		<ProjectReference Include="..\MoviesApp.Pagination\MoviesApp.Pagination.csproj" />
 		<ProjectReference Include="..\MoviesApp.Repository.Common\MoviesApp.Repository.Common.csproj" />

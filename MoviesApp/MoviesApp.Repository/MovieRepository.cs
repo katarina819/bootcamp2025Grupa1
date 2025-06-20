@@ -1,4 +1,5 @@
-﻿using MoviesApp.Model;
+﻿using MoviesApp.DTO;
+using MoviesApp.Model;
 using MoviesApp.Repository.Common;
 using Npgsql;
 using System;
@@ -220,6 +221,86 @@ namespace MoviesApp.Repository
             }
             return movies;
         }
+
+        public async Task<IList<string>> GetGenresByMovieIdAsync(Guid movieId)
+        {
+            var genres = new List<string>();
+            var query = "SELECT g.\"Name\" FROM \"MovieGenre\" mg\r\n" +
+                "left join \"Genre\" g on mg.\"GenreId\" = g.\"Id\"\r\n" +
+                "WHERE mg.\"MovieId\" = @id;";
+            if (_connection.State != System.Data.ConnectionState.Open)
+            {
+                await _connection.OpenAsync();
+            }
+            using (var command = new NpgsqlCommand(query, _connection))
+            {
+                command.Parameters.AddWithValue("@id", movieId);
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        genres.Add
+                        (
+                             reader.GetString(0)
+                        );
+                    }
+                }
+            }
+            return genres;
+        }
+
+        public async Task<IList<string>> GetLanguagesByMovieIdAsync(Guid movieId)
+        {
+            var genres = new List<string>();
+            var query = "SELECT l.\"Name\" FROM \"MovieLanguage\" ml\r\n" +
+                "left join \"Language\" l on ml.\"LanguageId\" = l.\"Id\"\r\n" +
+                "WHERE ml.\"MovieId\" = @id;";
+            if (_connection.State != System.Data.ConnectionState.Open)
+            {
+                await _connection.OpenAsync();
+            }
+            using (var command = new NpgsqlCommand(query, _connection))
+            {
+                command.Parameters.AddWithValue("@id", movieId);
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    while (await reader.ReadAsync())
+                    {
+                        genres.Add
+                        (
+                             reader.GetString(0)
+                        );
+                    }
+                }
+            }
+            return genres;
+        }
+        public async Task<DirectorCreateDto> GetDirectorByMovieIdAsync(Guid movieId)
+        {
+            
+            var query = "SELECT d.\"FirstName\", d.\"LastName\" FROM \"MovieDirector\" md\r\n" +
+                "LEFT JOIN \"Director\" d ON md.\"DirectorId\" = d.\"Id\"\r\n" +
+                "WHERE md.\"MovieId\" = @id;";
+            if (_connection.State != System.Data.ConnectionState.Open)
+            {
+                await _connection.OpenAsync();
+            }
+            using (var command = new NpgsqlCommand(query, _connection))
+            {
+                command.Parameters.AddWithValue("@id", movieId);
+                using (var reader = await command.ExecuteReaderAsync())
+                {
+                    await reader.ReadAsync();
+                    return new DirectorCreateDto
+                    {
+                        FirstName = reader.GetString(0),
+                        LastName = reader.GetString(1)
+                    };
+                }
+            }
+           
+        }
+
     }
 }
 
