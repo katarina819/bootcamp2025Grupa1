@@ -61,6 +61,7 @@ namespace MoviesApp.WebApi.Controllers
             {
                 return BadRequest("Release year must be in range 1888-2100.");
             }
+            description ??= "";
             
             Movie movie = new()
             {
@@ -169,8 +170,6 @@ namespace MoviesApp.WebApi.Controllers
                 Genres = movieGenres,
                 Languages = movieLanguages
             };
-
-
         }
     }
 }
