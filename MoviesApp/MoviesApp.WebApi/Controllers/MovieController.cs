@@ -17,7 +17,7 @@ namespace MoviesApp.WebApi.Controllers
 
         [HttpGet("get-all-movies")]
 
-        public async Task<IActionResult> GetAllMoviesAsync([FromQuery] int page = 1, [FromQuery] int pageSize = 1)
+        public async Task<IActionResult> GetAllMoviesAsync([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
             var movies = await _movieService.GetAllMoviesAsync(page, pageSize);
             return Ok(movies);
@@ -90,7 +90,7 @@ namespace MoviesApp.WebApi.Controllers
         }
 
         [HttpGet("get-movies-sorted")]
-        public async Task<ActionResult<IList<Movie>>> GetMoviesSortedAsync(string? sortBy, string? sortOrder)
+        public async Task<IActionResult> GetMoviesSortedAsync(string? sortBy, string? sortOrder, int page = 1, int pageSize = 10)
         {
             var validColumns = new HashSet<string>
             {
@@ -105,18 +105,20 @@ namespace MoviesApp.WebApi.Controllers
             {
                 return BadRequest("This column doesn't exist.");
             }
-            return await _movieService.GetMoviesSortedAsync(sortBy, order);
+            var movies = await _movieService.GetMoviesSortedAsync(sortBy, order, page, pageSize);
+            return Ok(movies);
         }
 
         [HttpGet("get-movies-filter-name")]
-        public async Task<ActionResult<List<Movie>>> GetMoviesFilterNameAsync(string filter)
+        public async Task<IActionResult> GetMoviesFilterNameAsync(string filter, int page = 1, int pageSize = 10)
         {
             if (string.IsNullOrWhiteSpace(filter))
             {
                 return BadRequest("No filter.");
             }
             var filterLower = "%" + filter.ToLower() + "%";
-            return await _movieService.GetMoviesFilterNameAsync(filterLower);
+            var movies = await _movieService.GetMoviesFilterNameAsync(filterLower, page, pageSize);
+            return Ok(movies);
         }
 
         [HttpGet("get-genres-by-movie-id")]

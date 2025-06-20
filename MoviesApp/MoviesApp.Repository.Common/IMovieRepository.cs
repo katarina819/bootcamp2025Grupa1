@@ -16,8 +16,8 @@ namespace MoviesApp.Repository.Common
         Task UpdateMovieAsync(Movie movie);
         Task AddMovieAsync(Movie movie);
         Task<Movie> GetMovieByIdAsync(Guid id);
-        Task<List<Movie>> GetMoviesSortedAsync(string sortBy, string order);
-        Task<List<Movie>> GetMoviesFilterNameAsync(string filter);
+        Task<Paginated<Movie>> GetMoviesSortedAsync(string sortBy, string order, int page = 1, int pageSize = 10);
+        Task<Paginated<Movie>> GetMoviesFilterNameAsync(string filter, int page = 1, int pageSize = 10);
         Task<IList<string>> GetGenresByMovieIdAsync(Guid movieId);
         Task<IList<string>> GetLanguagesByMovieIdAsync(Guid movieId);
         Task<DirectorCreateDto> GetDirectorByMovieIdAsync(Guid movieId);

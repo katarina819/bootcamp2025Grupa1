@@ -6,6 +6,7 @@ using MoviesApp.Repository.Common;
 using MoviesApp.Service.Common;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -63,14 +64,28 @@ namespace MoviesApp.Service
             return movie;
         }
 
-        public async Task<List<Movie>> GetMoviesSortedAsync(string sortBy, string order)
+        public async Task<Paginated<MovieDto>> GetMoviesSortedAsync(string sortBy, string order, int page = 1, int pageSize = 10)
         {
-            return await _movieRepository.GetMoviesSortedAsync(sortBy, order);
+            var pagedMovies = await _movieRepository.GetMoviesSortedAsync(sortBy, order, page, pageSize);
+            return new Paginated<MovieDto>
+            {
+                Page = pagedMovies.Page,
+                PageSize = pagedMovies.PageSize,
+                TotalCount = pagedMovies.TotalCount,
+                Items = _mapper.Map<List<MovieDto>>(pagedMovies.Items)
+            };
         }
 
-        public async Task<List<Movie>> GetMoviesFilterNameAsync(string filter)
+        public async Task<Paginated<MovieDto>> GetMoviesFilterNameAsync(string filter, int page = 1, int pageSize = 10)
         {
-            return await _movieRepository.GetMoviesFilterNameAsync(filter);
+            var pagedMovies = await _movieRepository.GetMoviesFilterNameAsync(filter, page, pageSize);
+            return new Paginated<MovieDto>
+            {
+                Page = pagedMovies.Page,
+                PageSize = pagedMovies.PageSize,
+                TotalCount = pagedMovies.TotalCount,
+                Items = _mapper.Map<List<MovieDto>>(pagedMovies.Items)
+            };
         }
 
         public async Task<IList<string>> GetGenresByMovieIdAsync(Guid movieId)

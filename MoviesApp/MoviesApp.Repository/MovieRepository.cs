@@ -139,9 +139,15 @@ namespace MoviesApp.Repository
             }
         }
 
-        public async Task<List<Movie>> GetMoviesSortedAsync(string sortBy, string order)
+        public async Task<Paginated<Movie>> GetMoviesSortedAsync(string sortBy, string order, int page = 1, int pageSize = 10)
         {
-            var movies = new List<Movie>();
+            var result = new Paginated<Movie>
+            {
+                Page = page,
+                PageSize = pageSize,
+                Items = new List<Movie>()
+            };
+
             var query = "SELECT * FROM \"Movie\" ORDER BY ";
             switch (sortBy)
             {
@@ -164,68 +170,83 @@ namespace MoviesApp.Repository
             switch (order)
             {
                 case "ASC":
-                    query += " ASC;";
+                    query += " ASC";
                     break;
                 case "DESC":
-                    query += " DESC;";
+                    query += " DESC";
                     break;
             }
-            
-            if (_connection.State != System.Data.ConnectionState.Open)
-            {
-                await _connection.OpenAsync();
-            }
-            using (var command = new NpgsqlCommand(query, _connection))
-            {
-                using (var reader = await command.ExecuteReaderAsync())
-                {
-                    while (await reader.ReadAsync())
-                    {
-                        var movie = new Movie
-                        {
-                            Id = reader.GetGuid(0),
-                            Name = reader.GetString(1),
-                            Duration = reader.GetInt32(2),
-                            Rating = reader.GetFloat(3),
-                            ReleaseYear = reader.GetInt32(4),
-                            Description = reader.GetString(5)
-                        };
-                        movies.Add(movie);
-                    }
-                }
-            }
-            return movies;
-        }
+            query += " LIMIT @PageSize OFFSET @Offset;";
 
-        public async Task<List<Movie>> GetMoviesFilterNameAsync(string filter)
-        {
-            var movies = new List<Movie>();
-            var query = "SELECT * FROM \"Movie\" WHERE LOWER(\"Name\") LIKE @filter;";
             if (_connection.State != System.Data.ConnectionState.Open)
             {
                 await _connection.OpenAsync();
             }
-            using (var command = new NpgsqlCommand(query, _connection))
+            using var countRows = new NpgsqlCommand("SELECT COUNT(*) FROM \"Movie\"", _connection);
+            result.TotalCount = Convert.ToInt32(await countRows.ExecuteScalarAsync());
+
+            var offset = (page - 1) * pageSize;
+            using var getRows = new NpgsqlCommand(query, _connection);
+            getRows.Parameters.AddWithValue("PageSize", pageSize);
+            getRows.Parameters.AddWithValue("Offset", offset);
+
+            using var reader = await getRows.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
             {
-                command.Parameters.AddWithValue("@filter", filter);
-                using (var reader = await command.ExecuteReaderAsync())
+                result.Items.Add(new Movie
                 {
-                    while (await reader.ReadAsync())
+                    Id = reader.GetGuid(0),
+                    Name = reader.GetString(1),
+                    Duration = reader.GetInt32(2),
+                    Rating = reader.GetFloat(3),
+                    ReleaseYear = reader.GetInt32(4),
+                    Description = reader.GetString(5)
+                });
+
+            }
+            return result;
+        }
+       
+
+        public async Task<Paginated<Movie>> GetMoviesFilterNameAsync(string filter, int page = 1, int pageSize = 10)
+        {
+            var result = new Paginated<Movie>
+            {
+                Page = page,
+                PageSize = pageSize,
+                Items = new List<Movie>()
+            };
+            var query = "SELECT * FROM \"Movie\" WHERE LOWER(\"Name\") ILIKE @filter LIMIT @PageSize OFFSET @Offset;";
+            if (_connection.State != System.Data.ConnectionState.Open)
+            {
+                await _connection.OpenAsync();
+            }
+            using var countRows = new NpgsqlCommand("SELECT COUNT(*) FROM \"Movie\" WHERE LOWER(\"Name\") ILIKE @filter", _connection);
+            countRows.Parameters.AddWithValue("@filter", filter);
+            result.TotalCount = Convert.ToInt32(await countRows.ExecuteScalarAsync());
+
+            var offset = (page - 1) * pageSize;
+            using var command = new NpgsqlCommand(query, _connection);
+            command.Parameters.AddWithValue("@filter", filter);
+            command.Parameters.AddWithValue("@PageSize", pageSize);
+            command.Parameters.AddWithValue("@Offset", offset);
+            using (var reader = await command.ExecuteReaderAsync())
+            {
+                while (await reader.ReadAsync())
+                {
+                    result.Items.Add(new Movie
                     {
-                        var movie = new Movie
-                        {
-                            Id = reader.GetGuid(0),
-                            Name = reader.GetString(1),
-                            Duration = reader.GetInt32(2),
-                            Rating = reader.GetFloat(3),
-                            ReleaseYear = reader.GetInt32(4),
-                            Description = reader.GetString(5)
-                        };
-                        movies.Add(movie);
-                    }
+                        Id = reader.GetGuid(0),
+                        Name = reader.GetString(1),
+                        Duration = reader.GetInt32(2),
+                        Rating = reader.GetFloat(3),
+                        ReleaseYear = reader.GetInt32(4),
+                        Description = reader.GetString(5)
+                    });
                 }
             }
-            return movies;
+            
+            return result;
         }
 
         public async Task<IList<string>> GetGenresByMovieIdAsync(Guid movieId)
