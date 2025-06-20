@@ -14,5 +14,7 @@ namespace MoviesApp.Repository.Common
         Task UpdateMovieAsync(Movie movie);
         Task AddMovieAsync(Movie movie);
         Task<Movie> GetMovieByIdAsync(Guid id);
+        Task<List<Movie>> GetMoviesSortedAsync(string sortBy, string order);
+        Task<List<Movie>> GetMoviesFilterNameAsync(string filter);
     }
 }

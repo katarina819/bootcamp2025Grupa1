@@ -86,6 +86,36 @@ namespace MoviesApp.WebApi.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
+        [HttpGet("get-movies-sorted")]
+        public async Task<ActionResult<IList<Movie>>> GetMoviesSortedAsync(string? sortBy, string? sortOrder)
+        {
+            var validColumns = new HashSet<string>
+            {
+                "Name",
+                "Duration",
+                "Rating",
+                "ReleaseYear",
+                "Description"
+            };
+            var order = sortOrder?.ToLower() == "desc" ? "DESC" : "ASC";
+            if (string.IsNullOrWhiteSpace(sortBy) || !validColumns.Contains(sortBy))
+            {
+                return BadRequest("This column doesn't exist.");
+            }
+            return await _movieService.GetMoviesSortedAsync(sortBy, order);
+        }
+
+        [HttpGet("get-movies-filter-name")]
+        public async Task<ActionResult<List<Movie>>> GetMoviesFilterNameAsync(string filter)
+        {
+            if (string.IsNullOrWhiteSpace(filter))
+            {
+                return BadRequest("No filter.");
+            }
+            var filterLower = "%" + filter.ToLower() + "%";
+            return await _movieService.GetMoviesFilterNameAsync(filterLower);
+        }
     }
 }
 

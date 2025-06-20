@@ -49,5 +49,15 @@ namespace MoviesApp.Service
             }
             return movie;
         }
+
+        public async Task<List<Movie>> GetMoviesSortedAsync(string sortBy, string order)
+        {
+            return await _movieRepository.GetMoviesSortedAsync(sortBy, order);
+        }
+
+        public async Task<List<Movie>> GetMoviesFilterNameAsync(string filter)
+        {
+            return await _movieRepository.GetMoviesFilterNameAsync(filter);
+        }
     }
 }
