@@ -23,7 +23,7 @@ namespace MoviesApp.Service
             _mapper = mapper;
         }
 
-        public async Task<Paginated<Movie>> GetAllMoviesAsync(int page = 1, int pageSize = 10)
+        public async Task<Paginated<MovieDto>> GetAllMoviesAsync(int page = 1, int pageSize = 10)
         {
             return await _movieRepository.GetAllMoviesAsync(page, pageSize);
             

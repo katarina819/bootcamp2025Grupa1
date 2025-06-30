@@ -19,13 +19,13 @@ namespace MoviesApp.Repository
     {
         public readonly NpgsqlConnection _connection;
         public MovieRepository(NpgsqlConnection connection) => _connection = connection;
-        public async Task<Paginated<Movie>> GetAllMoviesAsync(int page = 1, int pageSize = 10)
+        public async Task<Paginated<MovieDto>> GetAllMoviesAsync(int page = 1, int pageSize = 10)
         {
-            var result = new Paginated<Movie>
+            var result = new Paginated<MovieDto>
             {
                 Page = page,
                 PageSize = pageSize,
-                Items = new List<Movie>()
+                Items = new List<MovieDto>()
             };
 
             if (_connection.State != System.Data.ConnectionState.Open)
@@ -36,21 +36,28 @@ namespace MoviesApp.Repository
             result.TotalCount = Convert.ToInt32(await countRows.ExecuteScalarAsync());
 
             var offset = (page - 1) * pageSize;
-            using var getRows = new NpgsqlCommand("SELECT * FROM \"Movie\" ORDER BY \"Name\" LIMIT @PageSize OFFSET @Offset", _connection);
+            using var getRows = new NpgsqlCommand("SELECT * FROM \"MovieView\" ORDER BY \"Name\" LIMIT @PageSize OFFSET @Offset", _connection);
             getRows.Parameters.AddWithValue("PageSize", pageSize);
             getRows.Parameters.AddWithValue("Offset", offset);
 
             using var reader = await getRows.ExecuteReaderAsync();
             while (await reader.ReadAsync())
             {
-                result.Items.Add(new Movie
+                string genreString = reader.IsDBNull(4) ? "" : reader.GetString(5);
+
+                var genres = genreString
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(s => s.Trim())
+                    .ToList();
+
+                result.Items.Add(new MovieDto
                 {
                     Id = reader.GetGuid(0),
                     Name = reader.GetString(1),
                     Duration = reader.GetInt32(2),
-                    Rating = reader.GetFloat(3),
-                    ReleaseYear = reader.GetInt32(4),
-                    Description = reader.GetString(5)
+                    ReleaseYear = reader.GetInt32(3),
+                    Rating = reader.GetFloat(4),
+                    Genres = genres,
                 });
 
             }
@@ -59,14 +66,25 @@ namespace MoviesApp.Repository
 
         public async Task DeleteMovieAsync(Guid id)
         {
-            var query = "DELETE FROM \"Movie\" WHERE \"Id\" = @id;";
 
             if (_connection.State != System.Data.ConnectionState.Open)
             {
                 await _connection.OpenAsync();
             }
 
-            using (var command = new NpgsqlCommand(query, _connection))
+            using (var command = new NpgsqlCommand("DELETE FROM \"Movie\" WHERE \"Id\" = @id;", _connection))
+            {
+                command.Parameters.AddWithValue("@id", id);
+                await command.ExecuteNonQueryAsync();
+            }
+
+            using (var command = new NpgsqlCommand("DELETE FROM \"MovieGenre\" WHERE \"MovieId\" = @id", _connection))
+            {
+                command.Parameters.AddWithValue("@id", id);
+                await command.ExecuteNonQueryAsync();
+            }
+
+            using (var command = new NpgsqlCommand("DELETE FROM \"MovieLanguage\" WHERE \"MovieId\" = @id", _connection))
             {
                 command.Parameters.AddWithValue("@id", id);
                 await command.ExecuteNonQueryAsync();

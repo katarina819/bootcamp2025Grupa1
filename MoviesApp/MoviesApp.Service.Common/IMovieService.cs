@@ -11,7 +11,7 @@ namespace MoviesApp.Service.Common
 {
     public interface IMovieService
     {
-        Task<Paginated<Movie>> GetAllMoviesAsync(int page = 1, int pageSize = 10);
+        Task<Paginated<MovieDto>> GetAllMoviesAsync(int page = 1, int pageSize = 10);
         Task DeleteMovieAsync(Guid id);
         Task UpdateMovieAsync(Movie movie);
         Task AddMovieAsync(Movie movie);
