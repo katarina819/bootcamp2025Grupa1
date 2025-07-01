@@ -11,14 +11,20 @@ using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Use Autofac
+// Kestrel konfiguracija za HTTP na portu 5174
+//builder.WebHost.ConfigureKestrel(serverOptions =>
+//{
+//    serverOptions.ListenLocalhost(7123); // HTTP na localhost:5174
+//});
+
+// Use Autofac kao DI container
 builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory());
 
-// Connection string
+// Connection string iz appsettings.json
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
-// Autofac registrations
+// Autofac registracije servisa i repozitorija
 builder.Host.ConfigureContainer<ContainerBuilder>(containerBuilder =>
 {
     containerBuilder.Register(c => new NpgsqlConnection(connectionString))
@@ -30,10 +36,10 @@ builder.Host.ConfigureContainer<ContainerBuilder>(containerBuilder =>
 
     containerBuilder.RegisterType<MovieService>().As<IMovieService>().InstancePerLifetimeScope();
     containerBuilder.RegisterType<MovieRepository>().As<IMovieRepository>().InstancePerLifetimeScope();
-    
+
     containerBuilder.RegisterType<GenreService>().As<IGenreService>().InstancePerLifetimeScope();
     containerBuilder.RegisterType<GenreRepository>().As<IGenreRepository>().InstancePerLifetimeScope();
-    
+
     containerBuilder.RegisterType<LanguageService>().As<ILanguageService>().InstancePerLifetimeScope();
     containerBuilder.RegisterType<LanguageRepository>().As<ILanguageRepository>().InstancePerLifetimeScope();
 
@@ -43,33 +49,37 @@ builder.Host.ConfigureContainer<ContainerBuilder>(containerBuilder =>
         .InstancePerLifetimeScope();
 });
 
-// Register AutoMapper
+// AutoMapper
 builder.Services.AddAutoMapper(typeof(DirectorProfile).Assembly);
 
-// Add controllers & swagger
+// Controllers i Swagger
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// CORS - dopuštaj pristup sa svih lokacija (možeš ogranièiti na React app URL)
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll",
-        builder => builder.AllowAnyOrigin()
-                          .AllowAnyHeader()
-                          .AllowAnyMethod());
+    options.AddPolicy("AllowReactApp",
+        policy => policy.WithOrigins("http://localhost:5174")  // ovdje port React appa
+                        .AllowAnyHeader()
+                        .AllowAnyMethod());
 });
 
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
-    app.UseDeveloperExceptionPage(); 
+    app.UseDeveloperExceptionPage();
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-app.UseCors("AllowAll");
-app.UseHttpsRedirection();
+app.UseCors("AllowReactApp"); // Omoguæi CORS samo za React app
+
+app.UseHttpsRedirection(); // ako koristiš HTTPS na backendu
 app.UseAuthorization();
+
 app.MapControllers();
+
 app.Run();
