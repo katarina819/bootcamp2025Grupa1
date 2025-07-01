@@ -139,7 +139,7 @@ namespace MoviesApp.WebApi.Controllers
             return await _movieService.GetDirectorByMovieIdAsync(movieId);
         }
         
-        [HttpGet("get-movie-details")]
+        [HttpGet("{id}")]
 
         public async Task<ActionResult<MovieDetailsDto>> GetMovieDetails(Guid id)
         {
