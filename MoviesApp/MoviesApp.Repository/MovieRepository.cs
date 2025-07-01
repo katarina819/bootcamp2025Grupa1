@@ -7,7 +7,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
 using System.Data.Common;
 using System.Globalization;
 using System.Linq;
@@ -353,8 +352,7 @@ namespace MoviesApp.Repository
                     await reader.ReadAsync();
                     return new DirectorCreateDto
                     {
-                        FirstName = reader.GetString(0),
-                        LastName = reader.GetString(1)
+                        Name = reader.GetString(0)
                     };
                 }
             }

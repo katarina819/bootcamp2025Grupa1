@@ -164,7 +164,7 @@ namespace MoviesApp.WebApi.Controllers
                 Rating = movie.Rating,
                 ReleaseYear = movie.ReleaseYear,
                 Description = movie.Description,
-                DirectorName = movieDirector.FirstName + " " + movieDirector.LastName,
+                DirectorName = movieDirector.Name,
                 Genres = movieGenres,
                 Languages = movieLanguages
             };
