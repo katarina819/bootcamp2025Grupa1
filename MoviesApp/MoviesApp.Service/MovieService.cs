@@ -60,26 +60,14 @@ namespace MoviesApp.Service
 
         public async Task<Paginated<MovieDto>> GetMoviesSortedAsync(string sortBy, string order, int page = 1, int pageSize = 10)
         {
-            var pagedMovies = await _movieRepository.GetMoviesSortedAsync(sortBy, order, page, pageSize);
-            return new Paginated<MovieDto>
-            {
-                Page = pagedMovies.Page,
-                PageSize = pagedMovies.PageSize,
-                TotalCount = pagedMovies.TotalCount,
-                Items = _mapper.Map<List<MovieDto>>(pagedMovies.Items)
-            };
+            return await _movieRepository.GetMoviesSortedAsync(sortBy, order, page, pageSize);
+            
         }
 
         public async Task<Paginated<MovieDto>> GetMoviesFilterNameAsync(string filter, int page = 1, int pageSize = 10)
         {
-            var pagedMovies = await _movieRepository.GetMoviesFilterNameAsync(filter, page, pageSize);
-            return new Paginated<MovieDto>
-            {
-                Page = pagedMovies.Page,
-                PageSize = pagedMovies.PageSize,
-                TotalCount = pagedMovies.TotalCount,
-                Items = _mapper.Map<List<MovieDto>>(pagedMovies.Items)
-            };
+            return await _movieRepository.GetMoviesFilterNameAsync(filter, page, pageSize);
+            
         }
 
         public async Task<IList<string>> GetGenresByMovieIdAsync(Guid movieId)

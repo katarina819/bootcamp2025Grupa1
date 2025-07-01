@@ -7,6 +7,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Data;
 using System.Data.Common;
 using System.Globalization;
 using System.Linq;
@@ -93,7 +94,7 @@ namespace MoviesApp.Repository
 
         public async Task UpdateMovieAsync(Movie movie)
         {
-            var query = "UPDATE \"Movie\" SET \"Name\" = @name, \"Duration\" = @duration, \"Rating\" = @rating, \"ReleaseYear\" = @releaseYear, \"Description\" = @description WHERE \"Id\" = @id;";
+            var query = "UPDATE \"Movie\" SET \"Name\" = @name, \"Duration\" = @duration, \"Rating\" = @rating, \"ReleaseYear\" = @releaseYear, \"Description\" = @description, \"DirectorId\" = @directorId WHERE \"Id\" = @id;";
             if (_connection.State != System.Data.ConnectionState.Open)
             {
                 await _connection.OpenAsync();
@@ -106,6 +107,7 @@ namespace MoviesApp.Repository
                 command.Parameters.AddWithValue("@rating", movie.Rating);
                 command.Parameters.AddWithValue("@releaseYear", movie.ReleaseYear);
                 command.Parameters.AddWithValue("@description", movie.Description);
+                command.Parameters.AddWithValue("@directorId", movie.DirectorId);
                 command.Parameters.AddWithValue("@id", movie.Id);
                 await command.ExecuteNonQueryAsync();
             }
@@ -113,7 +115,7 @@ namespace MoviesApp.Repository
 
         public async Task AddMovieAsync(Movie movie)
         {
-            var query = "INSERT INTO \"Movie\" VALUES (@id, @name, @duration, @rating, @releaseYear, @description)";
+            var query = "INSERT INTO \"Movie\" VALUES (@id, @name, @duration, @rating, @releaseYear, @description, @directorId)";
             if (_connection.State != System.Data.ConnectionState.Open)
             {
                 await _connection.OpenAsync();
@@ -126,6 +128,7 @@ namespace MoviesApp.Repository
                 command.Parameters.AddWithValue("@rating", movie.Rating);
                 command.Parameters.AddWithValue("@releaseYear", movie.ReleaseYear);
                 command.Parameters.AddWithValue("@description", movie.Description);
+                command.Parameters.AddWithValue("@directorId", movie.DirectorId);
                 await command.ExecuteNonQueryAsync();
             }
         }
@@ -158,16 +161,16 @@ namespace MoviesApp.Repository
             }
         }
 
-        public async Task<Paginated<Movie>> GetMoviesSortedAsync(string sortBy, string order, int page = 1, int pageSize = 10)
+        public async Task<Paginated<MovieDto>> GetMoviesSortedAsync(string sortBy, string order, int page = 1, int pageSize = 10)
         {
-            var result = new Paginated<Movie>
+            var result = new Paginated<MovieDto>
             {
                 Page = page,
                 PageSize = pageSize,
-                Items = new List<Movie>()
+                Items = new List<MovieDto>()
             };
 
-            var query = "SELECT * FROM \"Movie\" ORDER BY ";
+            var query = "SELECT * FROM \"MovieView\" ORDER BY ";
             switch (sortBy)
             {
                 case "Name":
@@ -181,9 +184,6 @@ namespace MoviesApp.Repository
                     break;
                 case "ReleaseYear":
                     query += "\"ReleaseYear\"";
-                    break;
-                case "Description":
-                    query += "\"Description\"";
                     break;
             }
             switch (order)
@@ -201,7 +201,7 @@ namespace MoviesApp.Repository
             {
                 await _connection.OpenAsync();
             }
-            using var countRows = new NpgsqlCommand("SELECT COUNT(*) FROM \"Movie\"", _connection);
+            using var countRows = new NpgsqlCommand("SELECT COUNT(*) FROM \"MovieView\"", _connection);
             result.TotalCount = Convert.ToInt32(await countRows.ExecuteScalarAsync());
 
             var offset = (page - 1) * pageSize;
@@ -212,14 +212,21 @@ namespace MoviesApp.Repository
             using var reader = await getRows.ExecuteReaderAsync();
             while (await reader.ReadAsync())
             {
-                result.Items.Add(new Movie
+                string genreString = reader.IsDBNull(4) ? "" : reader.GetString(5);
+
+                var genres = genreString
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(s => s.Trim())
+                    .ToList();
+
+                result.Items.Add(new MovieDto
                 {
                     Id = reader.GetGuid(0),
                     Name = reader.GetString(1),
                     Duration = reader.GetInt32(2),
-                    Rating = reader.GetFloat(3),
-                    ReleaseYear = reader.GetInt32(4),
-                    Description = reader.GetString(5)
+                    ReleaseYear = reader.GetInt32(3),
+                    Rating = reader.GetFloat(4),
+                    Genres = genres
                 });
 
             }
@@ -227,20 +234,20 @@ namespace MoviesApp.Repository
         }
        
 
-        public async Task<Paginated<Movie>> GetMoviesFilterNameAsync(string filter, int page = 1, int pageSize = 10)
+        public async Task<Paginated<MovieDto>> GetMoviesFilterNameAsync(string filter, int page = 1, int pageSize = 10)
         {
-            var result = new Paginated<Movie>
+            var result = new Paginated<MovieDto>
             {
                 Page = page,
                 PageSize = pageSize,
-                Items = new List<Movie>()
+                Items = new List<MovieDto>()
             };
-            var query = "SELECT * FROM \"Movie\" WHERE LOWER(\"Name\") ILIKE @filter LIMIT @PageSize OFFSET @Offset;";
+            var query = "SELECT * FROM \"MovieView\" WHERE LOWER(\"Name\") ILIKE @filter LIMIT @PageSize OFFSET @Offset;";
             if (_connection.State != System.Data.ConnectionState.Open)
             {
                 await _connection.OpenAsync();
             }
-            using var countRows = new NpgsqlCommand("SELECT COUNT(*) FROM \"Movie\" WHERE LOWER(\"Name\") ILIKE @filter", _connection);
+            using var countRows = new NpgsqlCommand("SELECT COUNT(*) FROM \"MovieView\" WHERE LOWER(\"Name\") ILIKE @filter", _connection);
             countRows.Parameters.AddWithValue("@filter", filter);
             result.TotalCount = Convert.ToInt32(await countRows.ExecuteScalarAsync());
 
@@ -253,14 +260,21 @@ namespace MoviesApp.Repository
             {
                 while (await reader.ReadAsync())
                 {
-                    result.Items.Add(new Movie
+                    string genreString = reader.IsDBNull(4) ? "" : reader.GetString(5);
+
+                    var genres = genreString
+                        .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                        .Select(s => s.Trim())
+                        .ToList();
+
+                    result.Items.Add(new MovieDto
                     {
                         Id = reader.GetGuid(0),
                         Name = reader.GetString(1),
                         Duration = reader.GetInt32(2),
-                        Rating = reader.GetFloat(3),
-                        ReleaseYear = reader.GetInt32(4),
-                        Description = reader.GetString(5)
+                        ReleaseYear = reader.GetInt32(3),
+                        Rating = reader.GetFloat(4),
+                        Genres = genres
                     });
                 }
             }

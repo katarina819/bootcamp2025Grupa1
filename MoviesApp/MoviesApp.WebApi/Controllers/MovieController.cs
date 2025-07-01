@@ -98,15 +98,13 @@ namespace MoviesApp.WebApi.Controllers
                 "Name",
                 "Duration",
                 "Rating",
-                "ReleaseYear",
-                "Description"
+                "ReleaseYear"
             };
+
+            var sort = validColumns.Contains(sortBy) ? sortBy.ToLower() : "Name";
             var order = sortOrder?.ToLower() == "desc" ? "DESC" : "ASC";
-            if (string.IsNullOrWhiteSpace(sortBy) || !validColumns.Contains(sortBy))
-            {
-                return BadRequest("This column doesn't exist.");
-            }
-            var movies = await _movieService.GetMoviesSortedAsync(sortBy, order, page, pageSize);
+            
+            var movies = await _movieService.GetMoviesSortedAsync(sort, order, page, pageSize);
             return Ok(movies);
         }
 
