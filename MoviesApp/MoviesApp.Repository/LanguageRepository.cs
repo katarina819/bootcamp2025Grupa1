@@ -9,18 +9,18 @@ namespace MoviesApp.Repository
 {
     public class LanguageRepository : ILanguageRepository
     {
-        private readonly string _conn;
+        private readonly NpgsqlConnection _conn;
 
-        public LanguageRepository(string conn) => _conn = conn;
+        public LanguageRepository(NpgsqlConnection conn) => _conn = conn;
 
         public async Task<IEnumerable<Language>> GetAllAsync()
         {
             var list = new List<Language>();
-            await using var db = new NpgsqlConnection(_conn);
-            await db.OpenAsync();
+            
+            await _conn.OpenAsync();
             await using var cmd = new NpgsqlCommand(
                 "SELECT \"Id\", \"Name\" FROM \"Language\"",
-                db);
+                _conn);
 
             await using var rdr = await cmd.ExecuteReaderAsync();
             while (await rdr.ReadAsync())
@@ -36,11 +36,11 @@ namespace MoviesApp.Repository
 
         public async Task<Language?> GetByIdAsync(Guid id)
         {
-            await using var db = new NpgsqlConnection(_conn);
-            await db.OpenAsync();
+            
+            await _conn.OpenAsync();
             await using var cmd = new NpgsqlCommand(
                 "SELECT \"Id\", \"Name\" FROM \"Language\" WHERE \"Id\" = @id",
-                db);
+                _conn);
             cmd.Parameters.AddWithValue("id", id);
 
             await using var rdr = await cmd.ExecuteReaderAsync();
@@ -51,11 +51,11 @@ namespace MoviesApp.Repository
 
         public async Task CreateAsync(Language lang)
         {
-            await using var db = new NpgsqlConnection(_conn);
-            await db.OpenAsync();
+            
+            await _conn.OpenAsync();
             await using var cmd = new NpgsqlCommand(
                 "INSERT INTO \"Language\" (\"Id\", \"Name\") VALUES (@id, @name)",
-                db);
+                _conn);
             cmd.Parameters.AddWithValue("id", lang.Id);
             cmd.Parameters.AddWithValue("name", lang.Name);
             await cmd.ExecuteNonQueryAsync();
@@ -63,11 +63,11 @@ namespace MoviesApp.Repository
 
         public async Task UpdateAsync(Language lang)
         {
-            await using var db = new NpgsqlConnection(_conn);
-            await db.OpenAsync();
+            
+            await _conn.OpenAsync();
             await using var cmd = new NpgsqlCommand(
                 "UPDATE \"Language\" SET \"Name\" = @name WHERE \"Id\" = @id",
-                db);
+                _conn);
             cmd.Parameters.AddWithValue("id",   lang.Id);
             cmd.Parameters.AddWithValue("name", lang.Name);
             await cmd.ExecuteNonQueryAsync();
@@ -75,11 +75,11 @@ namespace MoviesApp.Repository
 
         public async Task DeleteAsync(Guid id)
         {
-            await using var db = new NpgsqlConnection(_conn);
-            await db.OpenAsync();
+            
+            await _conn.OpenAsync();
             await using var cmd = new NpgsqlCommand(
                 "DELETE FROM \"Language\" WHERE \"Id\" = @id",
-                db);
+                _conn);
             cmd.Parameters.AddWithValue("id", id);
             await cmd.ExecuteNonQueryAsync();
         }

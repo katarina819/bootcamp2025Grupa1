@@ -6,8 +6,9 @@ using MoviesApp.Service.Common;
 
 namespace MoviesApp.Controllers
 {
+    [Route("api/[controller]")]
     [ApiController]
-    [Route("id")]
+    
     public class LanguageController : ControllerBase
     {
         private readonly ILanguageService _service;
