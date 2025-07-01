@@ -1,4 +1,6 @@
-﻿using MoviesApp.Model;
+﻿using MoviesApp.DTO;
+using MoviesApp.Model;
+using MoviesApp.Pagination;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,10 +11,15 @@ namespace MoviesApp.Repository.Common
 {
     public interface IMovieRepository
     {
-        Task<IList<object>> GetAllMoviesAsync();
+        Task<Paginated<MovieDto>> GetAllMoviesAsync(int page = 1, int pageSize = 10);
         Task DeleteMovieAsync(Guid id);
         Task UpdateMovieAsync(Movie movie);
         Task AddMovieAsync(Movie movie);
         Task<Movie> GetMovieByIdAsync(Guid id);
+        Task<Paginated<Movie>> GetMoviesSortedAsync(string sortBy, string order, int page = 1, int pageSize = 10);
+        Task<Paginated<Movie>> GetMoviesFilterNameAsync(string filter, int page = 1, int pageSize = 10);
+        Task<IList<string>> GetGenresByMovieIdAsync(Guid movieId);
+        Task<IList<string>> GetLanguagesByMovieIdAsync(Guid movieId);
+        Task<DirectorCreateDto> GetDirectorByMovieIdAsync(Guid movieId);
     }
 }
