@@ -151,7 +151,8 @@ namespace MoviesApp.Repository
                         Duration = reader.GetInt32(2),
                         Rating = reader.GetFloat(3),
                         ReleaseYear = reader.GetInt32(4),
-                        Description = reader.GetString(5)
+                        Description = reader.GetString(5),
+                        DirectorId = reader.GetGuid(6)
                     };
                 }
             }
