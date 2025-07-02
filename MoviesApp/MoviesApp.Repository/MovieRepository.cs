@@ -334,19 +334,17 @@ namespace MoviesApp.Repository
             }
             return genres;
         }
-        public async Task<DirectorCreateDto> GetDirectorByMovieIdAsync(Guid movieId)
+        public async Task<DirectorCreateDto> GetDirectorByMovieIdAsync(Guid id)
         {
             
-            var query = "SELECT d.\"FirstName\", d.\"LastName\" FROM \"MovieDirector\" md\r\n" +
-                "LEFT JOIN \"Director\" d ON md.\"DirectorId\" = d.\"Id\"\r\n" +
-                "WHERE md.\"MovieId\" = @id;";
+            var query = "SELECT \"Name\" FROM \"Director\" WHERE \"Id\" = @id;";
             if (_connection.State != System.Data.ConnectionState.Open)
             {
                 await _connection.OpenAsync();
             }
             using (var command = new NpgsqlCommand(query, _connection))
             {
-                command.Parameters.AddWithValue("@id", movieId);
+                command.Parameters.AddWithValue("@id", id);
                 using (var reader = await command.ExecuteReaderAsync())
                 {
                     await reader.ReadAsync();

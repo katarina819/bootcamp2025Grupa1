@@ -155,10 +155,11 @@ namespace MoviesApp.WebApi.Controllers
             var movie = await _movieService.GetMovieByIdAsync(id);
             var movieGenres = await _movieService.GetGenresByMovieIdAsync(id);
             var movieLanguages = await _movieService.GetLanguagesByMovieIdAsync(id);
-            var movieDirector = await _movieService.GetDirectorByMovieIdAsync(id);
+            var movieDirector = await _movieService.GetDirectorByMovieIdAsync(movie.DirectorId);
 
             return new MovieDetailsDto
             {
+                Id = movie.Id,
                 Name = movie.Name,
                 Duration = movie.Duration,
                 Rating = movie.Rating,
