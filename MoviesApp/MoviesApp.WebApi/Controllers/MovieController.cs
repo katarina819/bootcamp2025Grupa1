@@ -82,20 +82,20 @@ namespace MoviesApp.WebApi.Controllers
         }
 
         [HttpGet("get-movies-sorted")]
-        public async Task<IActionResult> GetMoviesSortedAsync(string? sortBy, string? sortOrder, int page = 1, int pageSize = 10)
+        public async Task<IActionResult> GetMoviesSortedAsync(string? sortBy, string? sortOrder, int page = 1, int pageSize = 10, Guid? genreId = null)
         {
-            var validColumns = new HashSet<string>
+            
+            var sort = sortBy?.ToLower() switch
             {
-                "Name",
-                "Duration",
-                "Rating",
-                "ReleaseYear"
+                "name" => "Name",
+                "duration" => "Duration",
+                "rating" => "Rating",
+                "releaseyear" => "ReleaseYear",
+                _ => "Name"
             };
-
-            var sort = validColumns.Contains(sortBy) ? sortBy.ToLower() : "Name";
             var order = sortOrder?.ToLower() == "desc" ? "DESC" : "ASC";
             
-            var movies = await _movieService.GetMoviesSortedAsync(sort, order, page, pageSize);
+            var movies = await _movieService.GetMoviesSortedAsync(sort, order, page, pageSize, genreId);
             return Ok(movies);
         }
 
@@ -159,6 +159,11 @@ namespace MoviesApp.WebApi.Controllers
                 Genres = movieGenres,
                 Languages = movieLanguages
             };
+        }
+        [HttpGet("search")]
+        public async Task<List<MovieNameDto>> GetFilteredMovieNamesAsync(string filter)
+        {
+            return await _movieService.GetFilteredMovieNamesAsync(filter);
         }
     }
 }

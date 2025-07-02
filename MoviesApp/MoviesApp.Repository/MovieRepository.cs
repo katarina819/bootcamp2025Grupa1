@@ -314,7 +314,7 @@ namespace MoviesApp.Repository
             }
         }
 
-        public async Task<Paginated<MovieDto>> GetMoviesSortedAsync(string sortBy, string order, int page = 1, int pageSize = 10)
+        public async Task<Paginated<MovieDto>> GetMoviesSortedAsync(string sortBy, string order, int page = 1, int pageSize = 10, Guid? genreId = null)
         {
             var result = new Paginated<MovieDto>
             {
@@ -323,49 +323,42 @@ namespace MoviesApp.Repository
                 Items = new List<MovieDto>()
             };
 
-            var query = "SELECT * FROM \"MovieView\" ORDER BY ";
-            switch (sortBy)
+            var baseQuery = @"SELECT DISTINCT m.*
+                            FROM ""MovieView"" m
+                            LEFT JOIN ""MovieGenre"" mg ON mg.""MovieId"" = m.""Id"" ";
+            var whereClause = "";
+            if (genreId.HasValue)
             {
-                case "Name":
-                    query += "\"Name\"";
-                    break;
-                case "Duration":
-                    query += "\"Duration\"";
-                    break;
-                case "Rating":
-                    query += "\"Rating\"";
-                    break;
-                case "ReleaseYear":
-                    query += "\"ReleaseYear\"";
-                    break;
+                whereClause = "WHERE mg.\"GenreId\" = @genreId";
             }
-            switch (order)
-            {
-                case "ASC":
-                    query += " ASC";
-                    break;
-                case "DESC":
-                    query += " DESC";
-                    break;
-            }
-            query += " LIMIT @PageSize OFFSET @Offset;";
+            var orderClause = $@"ORDER BY ""{sortBy}"" {order}
+            LIMIT @pageSize OFFSET @offset;";
+            var query = baseQuery + whereClause + " " + orderClause;
 
             if (_connection.State != System.Data.ConnectionState.Open)
             {
                 await _connection.OpenAsync();
             }
-            using var countRows = new NpgsqlCommand("SELECT COUNT(*) FROM \"MovieView\"", _connection);
+            using var countRows = new NpgsqlCommand(@"SELECT COUNT(DISTINCT m.""Id"")
+                                                    FROM ""MovieView"" m
+                                                    LEFT JOIN ""MovieGenre"" mg ON mg.""MovieId"" = m.""Id""
+                                                     " + whereClause + ";", _connection);
+            if (genreId.HasValue)
+                countRows.Parameters.AddWithValue("genreId", genreId.Value);
             result.TotalCount = Convert.ToInt32(await countRows.ExecuteScalarAsync());
 
             var offset = (page - 1) * pageSize;
             using var getRows = new NpgsqlCommand(query, _connection);
-            getRows.Parameters.AddWithValue("PageSize", pageSize);
-            getRows.Parameters.AddWithValue("Offset", offset);
+            getRows.Parameters.AddWithValue("pageSize", pageSize);
+            getRows.Parameters.AddWithValue("offset", offset);
+            if (genreId.HasValue)
+                getRows.Parameters.AddWithValue("genreId", genreId.Value);
+
 
             using var reader = await getRows.ExecuteReaderAsync();
             while (await reader.ReadAsync())
             {
-                string genreString = reader.IsDBNull(4) ? "" : reader.GetString(5);
+                string genreString = reader.IsDBNull(5) ? "" : reader.GetString(5);
 
                 var genres = genreString
                     .Split(',', StringSplitOptions.RemoveEmptyEntries)
@@ -510,6 +503,31 @@ namespace MoviesApp.Repository
             }
            
         }
+
+        public async Task<List<MovieNameDto>> GetFilteredMovieNamesAsync(string filter)
+        {
+            var results = new List<MovieNameDto>();
+            var query = "SELECT * FROM \"Movie\" WHERE \"Name\" ILIKE @filter;";
+            if (_connection.State != System.Data.ConnectionState.Open)
+            {
+                await _connection.OpenAsync();
+            }
+            using var command = new NpgsqlCommand(query, _connection);
+            command.Parameters.AddWithValue("@filter", $"%{filter.ToLower()}%");
+            using (var reader = await command.ExecuteReaderAsync())
+            {
+                while (await reader.ReadAsync())
+                {
+                    results.Add(new MovieNameDto
+                    {
+                        Id = reader.GetGuid(0),
+                        Name = reader.GetString(1),
+                    });
+                }
+            }
+            return results;
+        }
+
 
     }
 }

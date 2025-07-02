@@ -17,10 +17,9 @@ namespace MoviesApp.Service
     {
         private readonly IMovieRepository _movieRepository;
         private readonly IMapper _mapper;
-        public MovieService(IMovieRepository movieRepository, IMapper mapper)
+        public MovieService(IMovieRepository movieRepository)
         {
             _movieRepository = movieRepository;
-            _mapper = mapper;
         }
 
         public async Task<Paginated<MovieDto>> GetAllMoviesAsync(int page = 1, int pageSize = 10)
@@ -58,9 +57,9 @@ namespace MoviesApp.Service
             return movie;
         }
 
-        public async Task<Paginated<MovieDto>> GetMoviesSortedAsync(string sortBy, string order, int page = 1, int pageSize = 10)
+        public async Task<Paginated<MovieDto>> GetMoviesSortedAsync(string sortBy, string order, int page = 1, int pageSize = 10, Guid? genreId = null)
         {
-            return await _movieRepository.GetMoviesSortedAsync(sortBy, order, page, pageSize);
+            return await _movieRepository.GetMoviesSortedAsync(sortBy, order, page, pageSize, genreId);
             
         }
 
@@ -82,6 +81,11 @@ namespace MoviesApp.Service
         public async Task<DirectorCreateDto> GetDirectorByIdAsync(Guid movieId)
         {
             return await _movieRepository.GetDirectorByIdAsync(movieId);
+        }
+
+        public async Task<List<MovieNameDto>> GetFilteredMovieNamesAsync(string filter)
+        {
+            return await _movieRepository.GetFilteredMovieNamesAsync(filter);
         }
     }
 }
