@@ -43,7 +43,7 @@ namespace MoviesApp.Repository
             using var reader = await getRows.ExecuteReaderAsync();
             while (await reader.ReadAsync())
             {
-                string genreString = reader.IsDBNull(4) ? "" : reader.GetString(5);
+                string genreString = reader.IsDBNull(5) ? "" : reader.GetString(5);
 
                 var genres = genreString
                     .Split(',', StringSplitOptions.RemoveEmptyEntries)
@@ -91,35 +91,169 @@ namespace MoviesApp.Repository
             }
         }
 
-        public async Task UpdateMovieAsync(Movie movie)
+        public async Task UpdateMovieAsync(MovieCreateDto movie)
         {
-            var query = "UPDATE \"Movie\" SET \"Name\" = @name, \"Duration\" = @duration, \"Rating\" = @rating, \"ReleaseYear\" = @releaseYear, \"Description\" = @description, \"DirectorId\" = @directorId WHERE \"Id\" = @id;";
             if (_connection.State != System.Data.ConnectionState.Open)
             {
                 await _connection.OpenAsync();
             }
 
-            using (var command = new NpgsqlCommand(query, _connection))
+            //check director
+
+            Guid directorId = Guid.Empty;
+
+            using (var selectCommand = new NpgsqlCommand("SELECT \"Id\" FROM \"Director\" WHERE \"Name\" ILIKE @directorName;", _connection))
+            {
+                selectCommand.Parameters.AddWithValue("@directorName", movie.DirectorName);
+
+                using var reader = await selectCommand.ExecuteReaderAsync();
+                if (await reader.ReadAsync())
+                {
+                    directorId = reader.GetGuid(0);
+                }
+            }
+
+            if (directorId == Guid.Empty)
+            {
+                directorId = Guid.NewGuid();
+
+                using (var insertCommand = new NpgsqlCommand("INSERT INTO \"Director\" (\"Id\", \"Name\") VALUES (@id, @name);", _connection))
+                {
+                    insertCommand.Parameters.AddWithValue("@id", directorId);
+                    insertCommand.Parameters.AddWithValue("@name", movie.DirectorName);
+
+                    await insertCommand.ExecuteNonQueryAsync();
+                }
+            }
+
+            //check genres
+
+            var existingGenreIds = new List<Guid>();
+
+            using (var command = new NpgsqlCommand("SELECT \"GenreId\" FROM \"MovieGenre\" WHERE \"MovieId\" = @movieId", _connection))
+            {
+                command.Parameters.AddWithValue("@movieId", movie.Id);
+
+                using var reader = await command.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    existingGenreIds.Add(reader.GetGuid(0));
+                }
+            }
+            var toAdd = movie.Genres.Except(existingGenreIds).ToList();       
+            var toRemove = existingGenreIds.Except(movie.Genres).ToList();
+
+            if (toRemove.Count != 0)
+            {
+                var deleteCommandText = "DELETE FROM \"MovieGenre\" WHERE \"MovieId\" = @movieId AND \"GenreId\" = ANY(@toRemove)";
+                using (var deleteCommand = new NpgsqlCommand(deleteCommandText, _connection))
+                {
+                    deleteCommand.Parameters.AddWithValue("@movieId", movie.Id);
+                    deleteCommand.Parameters.AddWithValue("@toRemove", toRemove.ToArray());
+                    await deleteCommand.ExecuteNonQueryAsync();
+                }
+            }
+            if (toAdd.Count != 0)
+            {
+                
+                foreach (var genreId in toAdd)
+                {
+                    using (var insertCommand = new NpgsqlCommand("INSERT INTO \"MovieGenre\" (\"MovieId\", \"GenreId\") VALUES (@movieId, @genreId)", _connection))
+                    {
+                        insertCommand.Parameters.AddWithValue("@movieId", movie.Id);
+                        insertCommand.Parameters.AddWithValue("@genreId", genreId);
+                        await insertCommand.ExecuteNonQueryAsync();
+                    }
+                }
+            }
+
+            //check languages
+            var existingLanguageIds = new List<Guid>();
+
+            using (var command = new NpgsqlCommand("SELECT \"LanguageId\" FROM \"MovieLanguage\" WHERE \"MovieId\" = @movieId", _connection))
+            {
+                command.Parameters.AddWithValue("@movieId", movie.Id);
+
+                using var reader = await command.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    existingGenreIds.Add(reader.GetGuid(0));
+                }
+            }
+            toAdd = movie.Languages.Except(existingLanguageIds).ToList();
+            toRemove = existingLanguageIds.Except(movie.Languages).ToList();
+
+            if (toRemove.Count != 0)
+            {
+                var deleteCommandText = "DELETE FROM \"MovieLanguage\" WHERE \"MovieId\" = @movieId AND \"LanguageId\" = ANY(@toRemove)";
+                using (var deleteCommand = new NpgsqlCommand(deleteCommandText, _connection))
+                {
+                    deleteCommand.Parameters.AddWithValue("@movieId", movie.Id);
+                    deleteCommand.Parameters.AddWithValue("@toRemove", toRemove.ToArray());
+                    await deleteCommand.ExecuteNonQueryAsync();
+                }
+            }
+            if (toAdd.Count != 0)
+            {
+                foreach (var languageId in toAdd)
+                {
+                    using (var insertCommand = new NpgsqlCommand("INSERT INTO \"MovieLanguage\" (\"MovieId\", \"LanguageId\") VALUES (@movieId, @languageId)", _connection))
+                    {
+                        insertCommand.Parameters.AddWithValue("@movieId", movie.Id);
+                        insertCommand.Parameters.AddWithValue("@languageId", languageId);
+                        await insertCommand.ExecuteNonQueryAsync();
+                    }
+                }
+            }
+            //update movie
+            using (var command = new NpgsqlCommand("UPDATE \"Movie\" SET \"Name\" = @name, \"Duration\" = @duration, \"Rating\" = @rating, \"ReleaseYear\" = @releaseYear, \"Description\" = @description, \"DirectorId\" = @directorId WHERE \"Id\" = @id;", _connection))
             {
                 command.Parameters.AddWithValue("@name", movie.Name);
                 command.Parameters.AddWithValue("@duration", movie.Duration);
                 command.Parameters.AddWithValue("@rating", movie.Rating);
                 command.Parameters.AddWithValue("@releaseYear", movie.ReleaseYear);
                 command.Parameters.AddWithValue("@description", movie.Description);
-                command.Parameters.AddWithValue("@directorId", movie.DirectorId);
+                command.Parameters.AddWithValue("@directorId", directorId);
                 command.Parameters.AddWithValue("@id", movie.Id);
                 await command.ExecuteNonQueryAsync();
             }
         }
 
-        public async Task AddMovieAsync(Movie movie)
+        public async Task AddMovieAsync(MovieCreateDto movie)
         {
-            var query = "INSERT INTO \"Movie\" VALUES (@id, @name, @duration, @rating, @releaseYear, @description, @directorId)";
+            
             if (_connection.State != System.Data.ConnectionState.Open)
             {
                 await _connection.OpenAsync();
             }
-            using (var command = new NpgsqlCommand(query, _connection))
+
+            Guid directorId = Guid.Empty;
+
+            using (var selectCommand = new NpgsqlCommand("SELECT \"Id\" FROM \"Director\" WHERE \"Name\" ILIKE @directorName;", _connection))
+            {
+                selectCommand.Parameters.AddWithValue("@directorName", movie.DirectorName);
+
+                using var reader = await selectCommand.ExecuteReaderAsync();
+                if (await reader.ReadAsync())
+                {
+                    directorId = reader.GetGuid(0);
+                }
+            }
+
+            if (directorId == Guid.Empty)
+            {
+                directorId = Guid.NewGuid();
+
+                using (var insertCommand = new NpgsqlCommand("INSERT INTO \"Director\" (\"Id\", \"Name\") VALUES (@id, @name);", _connection))
+                {
+                    insertCommand.Parameters.AddWithValue("@id", directorId);
+                    insertCommand.Parameters.AddWithValue("@name", movie.DirectorName);
+
+                    await insertCommand.ExecuteNonQueryAsync();
+                }
+            }
+            
+            using (var command = new NpgsqlCommand("INSERT INTO \"Movie\" VALUES (@id, @name, @duration, @rating, @releaseYear, @description, @directorId);", _connection))
             {
                 command.Parameters.AddWithValue("@id", movie.Id);
                 command.Parameters.AddWithValue("@name", movie.Name);
@@ -127,8 +261,28 @@ namespace MoviesApp.Repository
                 command.Parameters.AddWithValue("@rating", movie.Rating);
                 command.Parameters.AddWithValue("@releaseYear", movie.ReleaseYear);
                 command.Parameters.AddWithValue("@description", movie.Description);
-                command.Parameters.AddWithValue("@directorId", movie.DirectorId);
+                command.Parameters.AddWithValue("@directorId", directorId);
                 await command.ExecuteNonQueryAsync();
+            }
+
+            foreach(var genreId in movie.Genres)
+            {
+                using (var command = new NpgsqlCommand("INSERT INTO \"MovieGenre\" VALUES (@id, @genreId);", _connection))
+                {
+                    command.Parameters.AddWithValue("@id", movie.Id);
+                    command.Parameters.AddWithValue("@genreId", genreId);
+                    await command.ExecuteNonQueryAsync();
+                }
+            }
+
+            foreach (var languageId in movie.Languages)
+            {
+                using (var command = new NpgsqlCommand("INSERT INTO \"MovieLanguage\" VALUES (@id, @languageId);", _connection))
+                {
+                    command.Parameters.AddWithValue("@id", movie.Id);
+                    command.Parameters.AddWithValue("@languageId", languageId);
+                    await command.ExecuteNonQueryAsync();
+                }
             }
         }
 
@@ -334,7 +488,7 @@ namespace MoviesApp.Repository
             }
             return genres;
         }
-        public async Task<DirectorCreateDto> GetDirectorByMovieIdAsync(Guid id)
+        public async Task<DirectorCreateDto> GetDirectorByIdAsync(Guid id)
         {
             
             var query = "SELECT \"Name\" FROM \"Director\" WHERE \"Id\" = @id;";

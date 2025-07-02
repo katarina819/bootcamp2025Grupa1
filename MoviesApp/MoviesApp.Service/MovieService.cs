@@ -39,11 +39,11 @@ namespace MoviesApp.Service
             }
             await _movieRepository.DeleteMovieAsync(id);
         }
-        public async Task UpdateMovieAsync(Movie movie)
+        public async Task UpdateMovieAsync(MovieCreateDto movie)
         {
             await _movieRepository.UpdateMovieAsync(movie);
         }
-        public async Task AddMovieAsync(Movie movie)
+        public async Task AddMovieAsync(MovieCreateDto movie)
         {
             await _movieRepository.AddMovieAsync(movie);
         }
@@ -79,9 +79,9 @@ namespace MoviesApp.Service
         {
             return await _movieRepository.GetLanguagesByMovieIdAsync(movieId);
         }
-        public async Task<DirectorCreateDto> GetDirectorByMovieIdAsync(Guid movieId)
+        public async Task<DirectorCreateDto> GetDirectorByIdAsync(Guid movieId)
         {
-            return await _movieRepository.GetDirectorByMovieIdAsync(movieId);
+            return await _movieRepository.GetDirectorByIdAsync(movieId);
         }
     }
 }

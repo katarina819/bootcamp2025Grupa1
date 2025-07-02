@@ -38,40 +38,31 @@ namespace MoviesApp.WebApi.Controllers
         }
 
         [HttpPut("update-movie")]
-        public async Task<IActionResult> UpdateMovieAsync(Movie movie)
+        public async Task<IActionResult> UpdateMovieAsync(MovieCreateDto movie)
         {
             await _movieService.UpdateMovieAsync(movie);
             return Ok("Movie updated.");
         }
 
         [HttpPost("add-movie")]
-        public async Task<IActionResult> AddMovieAsync(string name, int duration, float rating, int releaseYear, string? description)
+        public async Task<IActionResult> AddMovieAsync(MovieCreateDto movie)
         {
-            if (duration < 1 || duration > 600)
+            if (movie.Duration < 1 || movie.Duration > 600)
             {
                 return BadRequest("Duration must be in range 1-600 minutes.");
             }
 
-            if(rating <= 0 || rating > 10)
+            if(movie.Rating <= 0 || movie.Rating > 10)
             {
                 return BadRequest("Rating must be in range 0-10.");
             }
 
-            if(releaseYear < 1888 || releaseYear > 2100)
+            if(movie.ReleaseYear < 1888 || movie.ReleaseYear > 2100)
             {
                 return BadRequest("Release year must be in range 1888-2100.");
             }
-            description ??= "";
+            movie.Description ??= "";
             
-            Movie movie = new()
-            {
-                Id = Guid.NewGuid(),
-                Name = name,
-                Duration = duration,
-                Rating = rating,
-                ReleaseYear = releaseYear,
-                Description = description
-            };
             
             await _movieService.AddMovieAsync(movie);
             return Ok("Movie added.");
@@ -134,9 +125,9 @@ namespace MoviesApp.WebApi.Controllers
 
         [HttpGet("get-director-by-movie-id")]
 
-        public async Task<DirectorCreateDto> GetDirectorByMovieIdAsync(Guid movieId)
+        public async Task<DirectorCreateDto> GetDirectorByIdAsync(Guid movieId)
         {
-            return await _movieService.GetDirectorByMovieIdAsync(movieId);
+            return await _movieService.GetDirectorByIdAsync(movieId);
         }
         
         [HttpGet("{id}")]
@@ -155,11 +146,10 @@ namespace MoviesApp.WebApi.Controllers
             var movie = await _movieService.GetMovieByIdAsync(id);
             var movieGenres = await _movieService.GetGenresByMovieIdAsync(id);
             var movieLanguages = await _movieService.GetLanguagesByMovieIdAsync(id);
-            var movieDirector = await _movieService.GetDirectorByMovieIdAsync(movie.DirectorId);
+            var movieDirector = await _movieService.GetDirectorByIdAsync(movie.DirectorId);
 
             return new MovieDetailsDto
             {
-                Id = movie.Id,
                 Name = movie.Name,
                 Duration = movie.Duration,
                 Rating = movie.Rating,
