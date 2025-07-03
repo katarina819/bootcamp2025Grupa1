@@ -362,16 +362,16 @@ namespace MoviesApp.Repository
             using var reader = await getRows.ExecuteReaderAsync();
             while (await reader.ReadAsync())
             {
-                string genreString = reader.IsDBNull(6) ? "" : reader.GetString(6);
+                string genreString = reader.IsDBNull(7) ? "" : reader.GetString(7);
 
                 var genres = genreString
                     .Split(',', StringSplitOptions.RemoveEmptyEntries)
                     .Select(s => s.Trim())
                     .ToList();
 
-                string languageString = reader.IsDBNull(7) ? "" : reader.GetString(7);
+                string languageString = reader.IsDBNull(8) ? "" : reader.GetString(8);
 
-                var languages = genreString
+                var languages = languageString
                     .Split(',', StringSplitOptions.RemoveEmptyEntries)
                     .Select(s => s.Trim())
                     .ToList();
@@ -383,7 +383,8 @@ namespace MoviesApp.Repository
                     Duration = reader.GetInt32(2),
                     ReleaseYear = reader.GetInt32(3),
                     Rating = reader.GetFloat(4),
-                    DirectorName = reader.GetString(5),
+                    Description = reader.GetString(5),
+                    DirectorName = reader.GetString(6),
                     Genres = genres,
                     Languages = languages
                 });
