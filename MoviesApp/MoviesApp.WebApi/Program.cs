@@ -11,20 +11,14 @@ using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Kestrel konfiguracija za HTTP na portu 5174
-//builder.WebHost.ConfigureKestrel(serverOptions =>
-//{
-//    serverOptions.ListenLocalhost(7123); // HTTP na localhost:5174
-//});
-
-// Use Autofac kao DI container
+// Use Autofac
 builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory());
 
-// Connection string iz appsettings.json
+// Connection string
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
     ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
-// Autofac registracije servisa i repozitorija
+// Autofac registrations
 builder.Host.ConfigureContainer<ContainerBuilder>(containerBuilder =>
 {
     containerBuilder.Register(c => new NpgsqlConnection(connectionString))
@@ -49,21 +43,20 @@ builder.Host.ConfigureContainer<ContainerBuilder>(containerBuilder =>
         .InstancePerLifetimeScope();
 });
 
-// AutoMapper
+// Register AutoMapper
 builder.Services.AddAutoMapper(typeof(DirectorProfile).Assembly);
 
-// Controllers i Swagger
+// Add controllers & swagger
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// CORS - dopuštaj pristup sa svih lokacija (možeš ogranièiti na React app URL)
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowReactApp",
-        policy => policy.WithOrigins("http://localhost:5174")  // ovdje port React appa
-                        .AllowAnyHeader()
-                        .AllowAnyMethod());
+    options.AddPolicy("AllowAll",
+        builder => builder.AllowAnyOrigin()
+                          .AllowAnyHeader()
+                          .AllowAnyMethod());
 });
 
 var app = builder.Build();
@@ -75,11 +68,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseCors("AllowReactApp"); // Omoguæi CORS samo za React app
-
-app.UseHttpsRedirection(); // ako koristiš HTTPS na backendu
+app.UseCors("AllowAll");
+app.UseHttpsRedirection();
 app.UseAuthorization();
-
 app.MapControllers();
-
 app.Run();
