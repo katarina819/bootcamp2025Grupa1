@@ -316,6 +316,7 @@ namespace MoviesApp.Repository
 
         public async Task<Paginated<MovieDetailsDto>> GetMoviesSortedAsync(string sortBy, string order, int page = 1, int pageSize = 10, Guid? genreId = null)
         {
+            page = Math.Max(1, page);
             var result = new Paginated<MovieDetailsDto>
             {
                 Page = page,
@@ -367,6 +368,7 @@ namespace MoviesApp.Repository
                 var genres = genreString
                     .Split(',', StringSplitOptions.RemoveEmptyEntries)
                     .Select(s => s.Trim())
+                    .Distinct()
                     .ToList();
 
                 string languageString = reader.IsDBNull(8) ? "" : reader.GetString(8);
@@ -374,6 +376,7 @@ namespace MoviesApp.Repository
                 var languages = languageString
                     .Split(',', StringSplitOptions.RemoveEmptyEntries)
                     .Select(s => s.Trim())
+                    .Distinct()
                     .ToList();
 
                 result.Items.Add(new MovieDetailsDto
