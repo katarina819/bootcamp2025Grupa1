@@ -57,7 +57,7 @@ namespace MoviesApp.Service
             return movie;
         }
 
-        public async Task<Paginated<MovieDto>> GetMoviesSortedAsync(string sortBy, string order, int page = 1, int pageSize = 10, Guid? genreId = null)
+        public async Task<Paginated<MovieDetailsDto>> GetMoviesSortedAsync(string sortBy, string order, int page = 1, int pageSize = 10, Guid? genreId = null)
         {
             return await _movieRepository.GetMoviesSortedAsync(sortBy, order, page, pageSize, genreId);
             

@@ -177,7 +177,7 @@ namespace MoviesApp.Repository
                 using var reader = await command.ExecuteReaderAsync();
                 while (await reader.ReadAsync())
                 {
-                    existingGenreIds.Add(reader.GetGuid(0));
+                    existingLanguageIds.Add(reader.GetGuid(0));
                 }
             }
             toAdd = movie.Languages.Except(existingLanguageIds).ToList();
@@ -314,37 +314,39 @@ namespace MoviesApp.Repository
             }
         }
 
-        public async Task<Paginated<MovieDto>> GetMoviesSortedAsync(string sortBy, string order, int page = 1, int pageSize = 10, Guid? genreId = null)
+        public async Task<Paginated<MovieDetailsDto>> GetMoviesSortedAsync(string sortBy, string order, int page = 1, int pageSize = 10, Guid? genreId = null)
         {
-            var result = new Paginated<MovieDto>
+            var result = new Paginated<MovieDetailsDto>
             {
                 Page = page,
                 PageSize = pageSize,
-                Items = new List<MovieDto>()
+                Items = new List<MovieDetailsDto>()
             };
 
-            var baseQuery = @"SELECT DISTINCT m.*
-                            FROM ""MovieView"" m
-                            LEFT JOIN ""MovieGenre"" mg ON mg.""MovieId"" = m.""Id"" ";
+            var baseQuery = @"SELECT * FROM ""MovieFullView"" ";
             var whereClause = "";
             if (genreId.HasValue)
             {
-                whereClause = "WHERE mg.\"GenreId\" = @genreId";
+                whereClause = @"WHERE ""Id"" IN (
+                                SELECT m.""Id""
+                                FROM ""Movie"" m
+                                JOIN ""MovieGenre"" mg ON m.""Id"" = mg.""MovieId""
+                                WHERE mg.""GenreId"" = @genreId
+                            )";
             }
             var orderClause = $@"ORDER BY ""{sortBy}"" {order}
-            LIMIT @pageSize OFFSET @offset;";
+                              LIMIT @pageSize OFFSET @offset;";
             var query = baseQuery + whereClause + " " + orderClause;
 
             if (_connection.State != System.Data.ConnectionState.Open)
             {
                 await _connection.OpenAsync();
             }
-            using var countRows = new NpgsqlCommand(@"SELECT COUNT(DISTINCT m.""Id"")
-                                                    FROM ""MovieView"" m
-                                                    LEFT JOIN ""MovieGenre"" mg ON mg.""MovieId"" = m.""Id""
-                                                     " + whereClause + ";", _connection);
+            using var countRows = new NpgsqlCommand(@"SELECT COUNT(*) FROM ""MovieFullView"" " + whereClause + ";", _connection);
             if (genreId.HasValue)
+            {
                 countRows.Parameters.AddWithValue("genreId", genreId.Value);
+            }
             result.TotalCount = Convert.ToInt32(await countRows.ExecuteScalarAsync());
 
             var offset = (page - 1) * pageSize;
@@ -352,27 +354,38 @@ namespace MoviesApp.Repository
             getRows.Parameters.AddWithValue("pageSize", pageSize);
             getRows.Parameters.AddWithValue("offset", offset);
             if (genreId.HasValue)
+            {
                 getRows.Parameters.AddWithValue("genreId", genreId.Value);
+            }
 
 
             using var reader = await getRows.ExecuteReaderAsync();
             while (await reader.ReadAsync())
             {
-                string genreString = reader.IsDBNull(5) ? "" : reader.GetString(5);
+                string genreString = reader.IsDBNull(6) ? "" : reader.GetString(6);
 
                 var genres = genreString
                     .Split(',', StringSplitOptions.RemoveEmptyEntries)
                     .Select(s => s.Trim())
                     .ToList();
 
-                result.Items.Add(new MovieDto
+                string languageString = reader.IsDBNull(7) ? "" : reader.GetString(7);
+
+                var languages = genreString
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                    .Select(s => s.Trim())
+                    .ToList();
+
+                result.Items.Add(new MovieDetailsDto
                 {
                     Id = reader.GetGuid(0),
                     Name = reader.GetString(1),
                     Duration = reader.GetInt32(2),
                     ReleaseYear = reader.GetInt32(3),
                     Rating = reader.GetFloat(4),
-                    Genres = genres
+                    DirectorName = reader.GetString(5),
+                    Genres = genres,
+                    Languages = languages
                 });
 
             }

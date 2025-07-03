@@ -9,6 +9,7 @@ namespace MoviesApp.DTO
 {
     public class MovieDetailsDto
     {
+        public Guid Id { get; set; }
         public required string Name { get; set; }
         public required int Duration { get; set; }
         public float? Rating { get; set; }

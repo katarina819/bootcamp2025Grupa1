@@ -23,7 +23,7 @@ namespace MoviesApp.WebApi.Controllers
             return Ok(movies);
         }
 
-        [HttpDelete("delete-movie")]
+        [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteMovieAsync(Guid id)
         {
             try
@@ -150,6 +150,7 @@ namespace MoviesApp.WebApi.Controllers
 
             return new MovieDetailsDto
             {
+                Id = movie.Id,
                 Name = movie.Name,
                 Duration = movie.Duration,
                 Rating = movie.Rating,
