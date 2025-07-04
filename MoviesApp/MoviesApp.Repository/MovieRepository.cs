@@ -72,12 +72,6 @@ namespace MoviesApp.Repository
                 await _connection.OpenAsync();
             }
 
-            using (var command = new NpgsqlCommand("DELETE FROM \"Movie\" WHERE \"Id\" = @id;", _connection))
-            {
-                command.Parameters.AddWithValue("@id", id);
-                await command.ExecuteNonQueryAsync();
-            }
-
             using (var command = new NpgsqlCommand("DELETE FROM \"MovieGenre\" WHERE \"MovieId\" = @id", _connection))
             {
                 command.Parameters.AddWithValue("@id", id);
@@ -85,6 +79,12 @@ namespace MoviesApp.Repository
             }
 
             using (var command = new NpgsqlCommand("DELETE FROM \"MovieLanguage\" WHERE \"MovieId\" = @id", _connection))
+            {
+                command.Parameters.AddWithValue("@id", id);
+                await command.ExecuteNonQueryAsync();
+            }
+
+            using (var command = new NpgsqlCommand("DELETE FROM \"Movie\" WHERE \"Id\" = @id;", _connection))
             {
                 command.Parameters.AddWithValue("@id", id);
                 await command.ExecuteNonQueryAsync();
