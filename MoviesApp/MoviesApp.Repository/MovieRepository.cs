@@ -231,7 +231,7 @@ namespace MoviesApp.Repository
 
             using (var selectCommand = new NpgsqlCommand("SELECT \"Id\" FROM \"Director\" WHERE \"Name\" ILIKE @directorName;", _connection))
             {
-                selectCommand.Parameters.AddWithValue("@directorName", movie.DirectorName);
+                selectCommand.Parameters.AddWithValue("@directorName", movie.DirectorName.Trim());
 
                 using var reader = await selectCommand.ExecuteReaderAsync();
                 if (await reader.ReadAsync())
@@ -247,7 +247,7 @@ namespace MoviesApp.Repository
                 using (var insertCommand = new NpgsqlCommand("INSERT INTO \"Director\" (\"Id\", \"Name\") VALUES (@id, @name);", _connection))
                 {
                     insertCommand.Parameters.AddWithValue("@id", directorId);
-                    insertCommand.Parameters.AddWithValue("@name", movie.DirectorName);
+                    insertCommand.Parameters.AddWithValue("@name", movie.DirectorName.Trim());
 
                     await insertCommand.ExecuteNonQueryAsync();
                 }
