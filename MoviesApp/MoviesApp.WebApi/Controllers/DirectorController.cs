@@ -2,21 +2,29 @@
 using MoviesApp.DTO;
 using MoviesApp.Service.Common;
 
-
-
 namespace MoviesApp.WebApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
     public class DirectorController : ControllerBase
     {
-        private readonly IDirectorService _directorService; 
-        
+        private readonly IDirectorService _directorService;
+
+        /// <summary>
+        /// Constructor for DirectorController.
+        /// </summary>
+        /// <param name="directorService">Injected director service.</param>
         public DirectorController(IDirectorService directorService)
         {
             _directorService = directorService ?? throw new ArgumentNullException(nameof(directorService));
         }
 
+        /// <summary>
+        /// Retrieves a paginated list of directors.
+        /// </summary>
+        /// <param name="page">Page number (default is 1).</param>
+        /// <param name="pageSize">Page size (default is 1).</param>
+        /// <returns>Paginated list of directors.</returns>
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 1)
         {
@@ -24,6 +32,11 @@ namespace MoviesApp.WebApi.Controllers
             return Ok(directors);
         }
 
+        /// <summary>
+        /// Retrieves a director by their unique identifier.
+        /// </summary>
+        /// <param name="id">Director's unique identifier.</param>
+        /// <returns>The director data if found; 404 Not Found otherwise.</returns>
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(Guid id)
         {
@@ -32,6 +45,11 @@ namespace MoviesApp.WebApi.Controllers
             return Ok(director);
         }
 
+        /// <summary>
+        /// Creates a new director.
+        /// </summary>
+        /// <param name="dto">Director data transfer object.</param>
+        /// <returns>Created director with 201 status code.</returns>
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] DirectorCreateDto dto)
         {
@@ -42,6 +60,12 @@ namespace MoviesApp.WebApi.Controllers
 
         }
 
+        /// <summary>
+        /// Updates an existing director.
+        /// </summary>
+        /// <param name="id">Director's unique identifier.</param>
+        /// <param name="dto">Updated director data.</param>
+        /// <returns>NoContent if updated; 404 Not Found if director does not exist.</returns>
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(Guid id, [FromBody] DirectorCreateDto dto)
         {
@@ -53,6 +77,11 @@ namespace MoviesApp.WebApi.Controllers
             return NoContent();
         }
 
+        /// <summary>
+        /// Deletes a director by their unique identifier.
+        /// </summary>
+        /// <param name="id">Director's unique identifier.</param>
+        /// <returns>NoContent if deleted; 404 Not Found if director does not exist.</returns>
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {
@@ -61,6 +90,5 @@ namespace MoviesApp.WebApi.Controllers
 
             return NoContent();
         }
-
     }
 }

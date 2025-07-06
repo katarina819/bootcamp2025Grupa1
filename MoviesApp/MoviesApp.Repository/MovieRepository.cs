@@ -15,10 +15,26 @@ using System.Threading.Tasks;
 
 namespace MoviesApp.Repository
 {
+    /// <summary>
+    /// Repository class for managing Movie entities.
+    /// Provides CRUD and pagination operations using PostgreSQL database.
+    /// </summary>
     public class MovieRepository : IMovieRepository
     {
         public readonly NpgsqlConnection _connection;
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="MovieRepository"/> with the specified database connection.
+        /// </summary>
+        /// <param name="connection">NpgsqlConnection to the database.</param>
         public MovieRepository(NpgsqlConnection connection) => _connection = connection;
+
+        /// <summary>
+        /// Retrieves paginated list of movies.
+        /// </summary>
+        /// <param name="page">Page number (default is 1).</param>
+        /// <param name="pageSize">Number of items per page (default is 10).</param>
+        /// <returns>A <see cref="Paginated{MovieDto}"/> containing movie data for the specified page.</returns>
         public async Task<Paginated<MovieDto>> GetAllMoviesAsync(int page = 1, int pageSize = 10)
         {
             var result = new Paginated<MovieDto>
@@ -64,6 +80,10 @@ namespace MoviesApp.Repository
             return result;
         }
 
+        /// <summary>
+        /// Deletes a movie by its Id, including related entries in MovieGenre and MovieLanguage tables.
+        /// </summary>
+        /// <param name="id">The Id of the movie to delete.</param>
         public async Task DeleteMovieAsync(Guid id)
         {
 
@@ -91,6 +111,12 @@ namespace MoviesApp.Repository
             }
         }
 
+        /// <summary>
+        /// Updates a movie and its related data including director, genres, and languages.
+        /// Inserts new director if it does not exist.
+        /// Synchronizes genres and languages with the database.
+        /// </summary>
+        /// <param name="movie">The <see cref="MovieCreateDto"/> object containing updated movie data.</param>
         public async Task UpdateMovieAsync(MovieCreateDto movie)
         {
             if (_connection.State != System.Data.ConnectionState.Open)
@@ -140,7 +166,7 @@ namespace MoviesApp.Repository
                     existingGenreIds.Add(reader.GetGuid(0));
                 }
             }
-            var toAdd = movie.Genres.Except(existingGenreIds).ToList();       
+            var toAdd = movie.Genres.Except(existingGenreIds).ToList();
             var toRemove = existingGenreIds.Except(movie.Genres).ToList();
 
             if (toRemove.Count != 0)
@@ -155,7 +181,7 @@ namespace MoviesApp.Repository
             }
             if (toAdd.Count != 0)
             {
-                
+
                 foreach (var genreId in toAdd)
                 {
                     using (var insertCommand = new NpgsqlCommand("INSERT INTO \"MovieGenre\" (\"MovieId\", \"GenreId\") VALUES (@movieId, @genreId)", _connection))
@@ -219,6 +245,12 @@ namespace MoviesApp.Repository
             }
         }
 
+        /// <summary>
+        /// Adds a new movie to the database along with its director, genres, and languages.
+        /// If the director does not exist, a new director is created.
+        /// </summary>
+        /// <param name="movie">The movie data transfer object containing movie details to add.</param>
+        /// <returns>A Task representing the asynchronous operation.</returns>
         public async Task AddMovieAsync(MovieCreateDto movie)
         {
             
@@ -286,6 +318,11 @@ namespace MoviesApp.Repository
             }
         }
 
+        /// <summary>
+        /// Retrieves a movie from the database by its unique identifier.
+        /// </summary>
+        /// <param name="id">The unique identifier of the movie to retrieve.</param>
+        /// <returns>A Task that returns the Movie object if found.</returns>
         public async Task<Movie> GetMovieByIdAsync(Guid id)
         {
             var query = "SELECT * FROM \"Movie\" WHERE \"Id\" = @id;";
@@ -314,89 +351,123 @@ namespace MoviesApp.Repository
             }
         }
 
+        /// <summary>
+        /// Retrieves a paginated list of movies sorted by a specified column and order,
+        /// optionally filtered by a genre.
+        /// </summary>
+        /// <param name="sortBy">The column name to sort by (e.g., "Name", "Rating").</param>
+        /// <param name="order">The sorting order, either "ASC" or "DESC".</param>
+        /// <param name="page">The page number for pagination (default is 1).</param>
+        /// <param name="pageSize">The number of items per page (default is 10).</param>
+        /// <param name="genreId">Optional genre identifier to filter movies by genre.</param>
+        /// <returns>A Task that returns a paginated list of MovieDetailsDto objects.</returns>
+        /// <exception cref="Exception">Throws if a database or query error occurs.</exception>
         public async Task<Paginated<MovieDetailsDto>> GetMoviesSortedAsync(string sortBy, string order, int page = 1, int pageSize = 10, Guid? genreId = null)
         {
-            page = Math.Max(1, page);
-            var result = new Paginated<MovieDetailsDto>
+            try
             {
-                Page = page,
-                PageSize = pageSize,
-                Items = new List<MovieDetailsDto>()
-            };
-
-            var baseQuery = @"SELECT * FROM ""MovieFullView"" ";
-            var whereClause = "";
-            if (genreId.HasValue)
-            {
-                whereClause = @"WHERE ""Id"" IN (
-                                SELECT m.""Id""
-                                FROM ""Movie"" m
-                                JOIN ""MovieGenre"" mg ON m.""Id"" = mg.""MovieId""
-                                WHERE mg.""GenreId"" = @genreId
-                            )";
-            }
-            var orderClause = $@"ORDER BY ""{sortBy}"" {order}
-                              LIMIT @pageSize OFFSET @offset;";
-            var query = baseQuery + whereClause + " " + orderClause;
-
-            if (_connection.State != System.Data.ConnectionState.Open)
-            {
-                await _connection.OpenAsync();
-            }
-            using var countRows = new NpgsqlCommand(@"SELECT COUNT(*) FROM ""MovieFullView"" " + whereClause + ";", _connection);
-            if (genreId.HasValue)
-            {
-                countRows.Parameters.AddWithValue("genreId", genreId.Value);
-            }
-            result.TotalCount = Convert.ToInt32(await countRows.ExecuteScalarAsync());
-
-            var offset = (page - 1) * pageSize;
-            using var getRows = new NpgsqlCommand(query, _connection);
-            getRows.Parameters.AddWithValue("pageSize", pageSize);
-            getRows.Parameters.AddWithValue("offset", offset);
-            if (genreId.HasValue)
-            {
-                getRows.Parameters.AddWithValue("genreId", genreId.Value);
-            }
-
-
-            using var reader = await getRows.ExecuteReaderAsync();
-            while (await reader.ReadAsync())
-            {
-                string genreString = reader.IsDBNull(7) ? "" : reader.GetString(7);
-
-                var genres = genreString
-                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
-                    .Select(s => s.Trim())
-                    .Distinct()
-                    .ToList();
-
-                string languageString = reader.IsDBNull(8) ? "" : reader.GetString(8);
-
-                var languages = languageString
-                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
-                    .Select(s => s.Trim())
-                    .Distinct()
-                    .ToList();
-
-                result.Items.Add(new MovieDetailsDto
+                page = Math.Max(1, page);
+                var result = new Paginated<MovieDetailsDto>
                 {
-                    Id = reader.GetGuid(0),
-                    Name = reader.GetString(1),
-                    Duration = reader.GetInt32(2),
-                    ReleaseYear = reader.GetInt32(3),
-                    Rating = reader.GetFloat(4),
-                    Description = reader.GetString(5),
-                    DirectorName = reader.GetString(6),
-                    Genres = genres,
-                    Languages = languages
-                });
+                    Page = page,
+                    PageSize = pageSize,
+                    Items = new List<MovieDetailsDto>()
+                };
 
+                var baseQuery = @"SELECT * FROM ""MovieFullView"" ";
+                var whereClause = "";
+                if (genreId.HasValue)
+                {
+                    whereClause = @"WHERE ""Id"" IN (
+                            SELECT m.""Id""
+                            FROM ""Movie"" m
+                            JOIN ""MovieGenre"" mg ON m.""Id"" = mg.""MovieId""
+                            WHERE mg.""GenreId"" = @genreId
+                        )";
+                }
+
+                // Validation of sortBy to prevent SQL Injection and errors
+                var allowedSortColumns = new[] { "Name", "Rating", "ReleaseYear", "Duration" };
+                if (!allowedSortColumns.Contains(sortBy))
+                    sortBy = "Name"; // default
+
+                order = order.ToUpper() == "DESC" ? "DESC" : "ASC"; 
+
+                var orderClause = $@"ORDER BY ""{sortBy}"" {order}
+                             LIMIT @pageSize OFFSET @offset;";
+                var query = baseQuery + whereClause + " " + orderClause;
+
+                if (_connection.State != System.Data.ConnectionState.Open)
+                {
+                    await _connection.OpenAsync();
+                }
+
+                using var countRows = new NpgsqlCommand(@"SELECT COUNT(*) FROM ""MovieFullView"" " + whereClause + ";", _connection);
+                if (genreId.HasValue)
+                {
+                    countRows.Parameters.AddWithValue("genreId", genreId.Value);
+                }
+                result.TotalCount = Convert.ToInt32(await countRows.ExecuteScalarAsync());
+
+                var offset = (page - 1) * pageSize;
+                using var getRows = new NpgsqlCommand(query, _connection);
+                getRows.Parameters.AddWithValue("pageSize", pageSize);
+                getRows.Parameters.AddWithValue("offset", offset);
+                if (genreId.HasValue)
+                {
+                    getRows.Parameters.AddWithValue("genreId", genreId.Value);
+                }
+
+                using var reader = await getRows.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
+                {
+                    string genreString = reader.IsDBNull(7) ? "" : reader.GetString(7);
+                    var genres = genreString
+                        .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                        .Select(s => s.Trim())
+                        .Distinct()
+                        .ToList();
+
+                    string languageString = reader.IsDBNull(8) ? "" : reader.GetString(8);
+                    var languages = languageString
+                        .Split(',', StringSplitOptions.RemoveEmptyEntries)
+                        .Select(s => s.Trim())
+                        .Distinct()
+                        .ToList();
+
+                    result.Items.Add(new MovieDetailsDto
+                    {
+                        Id = reader.GetGuid(0),
+                        Name = reader.GetString(1),
+                        Duration = reader.GetInt32(2),
+                        ReleaseYear = reader.GetInt32(3),
+                        Rating = reader.GetFloat(4),
+                        Description = reader.GetString(5),
+                        DirectorName = reader.IsDBNull(6) ? null : reader.GetString(6),
+                        Genres = genres,
+                        Languages = languages
+                    });
+                }
+
+                return result;
             }
-            return result;
+            catch (Exception ex)
+            {
+                Console.WriteLine("❌ Greška prilikom dohvata filmova:");
+                Console.WriteLine(ex.Message);
+                Console.WriteLine(ex.StackTrace);
+                throw; // You can also return null if you don't want to throw further
+            }
         }
-       
 
+
+        /// <summary>
+        /// Retrieves a paginated list of movies filtered by name (case insensitive).
+        /// </summary>
+        /// <param name="filter">The filter string to search movie names.</param>
+        /// <param name="page">The page number for pagination (default is 1).</param>
+        /// <param name="pageSize">The number of items per page (default is 10).</param>
+        /// <returns>A paginated list of MovieDto matching the filter.</returns>
         public async Task<Paginated<MovieDto>> GetMoviesFilterNameAsync(string filter, int page = 1, int pageSize = 10)
         {
             var result = new Paginated<MovieDto>
@@ -445,6 +516,11 @@ namespace MoviesApp.Repository
             return result;
         }
 
+        /// <summary>
+        /// Retrieves a list of genre names associated with a specific movie.
+        /// </summary>
+        /// <param name="movieId">The unique identifier of the movie.</param>
+        /// <returns>A list of genre names for the given movie.</returns>
         public async Task<IList<string>> GetGenresByMovieIdAsync(Guid movieId)
         {
             var genres = new List<string>();
@@ -472,6 +548,11 @@ namespace MoviesApp.Repository
             return genres;
         }
 
+        /// <summary>
+        /// Retrieves a list of language names associated with a specific movie.
+        /// </summary>
+        /// <param name="movieId">The unique identifier of the movie.</param>
+        /// <returns>A list of language names for the given movie.</returns>
         public async Task<IList<string>> GetLanguagesByMovieIdAsync(Guid movieId)
         {
             var genres = new List<string>();
@@ -498,29 +579,45 @@ namespace MoviesApp.Repository
             }
             return genres;
         }
-        public async Task<DirectorCreateDto> GetDirectorByIdAsync(Guid id)
+
+        /// <summary>
+        /// Retrieves the director details by the director's unique identifier.
+        /// </summary>
+        /// <param name="id">The unique identifier of the director.</param>
+        /// <returns>A DirectorCreateDto containing the director's name, or null if not found.</returns>
+        public async Task<DirectorCreateDto?> GetDirectorByIdAsync(Guid id)
         {
-            
             var query = "SELECT \"Name\" FROM \"Director\" WHERE \"Id\" = @id;";
+
             if (_connection.State != System.Data.ConnectionState.Open)
             {
                 await _connection.OpenAsync();
             }
+
             using (var command = new NpgsqlCommand(query, _connection))
             {
                 command.Parameters.AddWithValue("@id", id);
                 using (var reader = await command.ExecuteReaderAsync())
                 {
-                    await reader.ReadAsync();
-                    return new DirectorCreateDto
+                    if (await reader.ReadAsync())
                     {
-                        Name = reader.GetString(0)
-                    };
+                        return new DirectorCreateDto
+                        {
+                            Name = reader.GetString(0)
+                        };
+                    }
                 }
             }
-           
+
+            return null; // or throw a NotFoundException if you prefer
         }
 
+
+        /// <summary>
+        /// Retrieves a list of movies whose names match the given filter (case insensitive).
+        /// </summary>
+        /// <param name="filter">The filter string to search movie names.</param>
+        /// <returns>A list of MovieNameDto matching the filter.</returns>
         public async Task<List<MovieNameDto>> GetFilteredMovieNamesAsync(string filter)
         {
             var results = new List<MovieNameDto>();
