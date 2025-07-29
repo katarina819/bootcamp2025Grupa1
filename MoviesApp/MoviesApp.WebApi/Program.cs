@@ -11,6 +11,8 @@ using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Configuration.AddEnvironmentVariables();
+
 // Use Autofac
 builder.Host.UseServiceProviderFactory(new AutofacServiceProviderFactory());
 
@@ -51,7 +53,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-var frontendUrl = builder.Configuration.GetValue<string>("FrontendUrl");
+var frontendUrl = builder.Configuration["FrontendUrl"];
 
 if (string.IsNullOrWhiteSpace(frontendUrl))
 {
@@ -60,12 +62,11 @@ if (string.IsNullOrWhiteSpace(frontendUrl))
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowSpecificOrigin",
-        policy => policy.WithOrigins(frontendUrl)
-                        .AllowAnyHeader()
-                        .AllowAnyMethod());
+    options.AddPolicy("AllowAll", policy =>
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader());
 });
-
 
 var app = builder.Build();
 
@@ -76,8 +77,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-
-app.UseCors("AllowSpecificOrigin");
+app.UseCors("AllowAll");
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
