@@ -51,13 +51,21 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+var frontendUrl = builder.Configuration.GetValue<string>("FrontendUrl");
+
+if (string.IsNullOrWhiteSpace(frontendUrl))
+{
+    throw new InvalidOperationException("FrontendUrl configuration is missing or empty.");
+}
+
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll",
-        builder => builder.AllowAnyOrigin()
-                          .AllowAnyHeader()
-                          .AllowAnyMethod());
+    options.AddPolicy("AllowSpecificOrigin",
+        policy => policy.WithOrigins(frontendUrl)
+                        .AllowAnyHeader()
+                        .AllowAnyMethod());
 });
+
 
 var app = builder.Build();
 
@@ -68,7 +76,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseCors("AllowAll");
+
+app.UseCors("AllowSpecificOrigin");
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
