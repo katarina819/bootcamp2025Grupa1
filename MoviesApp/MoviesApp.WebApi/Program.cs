@@ -53,7 +53,8 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-var frontendUrl = builder.Configuration["FrontendUrl"];
+
+var frontendUrl = builder.Configuration["FrontendUrl"] ?? "https://bootcampmovie.netlify.app";
 
 if (string.IsNullOrWhiteSpace(frontendUrl))
 {
@@ -62,11 +63,12 @@ if (string.IsNullOrWhiteSpace(frontendUrl))
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", policy =>
-        policy.AllowAnyOrigin()
-              .AllowAnyMethod()
-              .AllowAnyHeader());
+    options.AddPolicy("AllowFrontendApp",
+        builder => builder.WithOrigins(frontendUrl)
+                          .AllowAnyMethod()
+                          .AllowAnyHeader());
 });
+
 
 var app = builder.Build();
 
@@ -77,7 +79,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseCors("AllowAll");
+app.UseCors("AllowFrontendApp");
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
