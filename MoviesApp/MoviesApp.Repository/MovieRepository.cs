@@ -236,9 +236,9 @@ namespace MoviesApp.Repository
             {
                 command.Parameters.AddWithValue("@name", movie.Name);
                 command.Parameters.AddWithValue("@duration", movie.Duration);
-                command.Parameters.AddWithValue("@rating", movie.Rating);
+                command.Parameters.AddWithValue("@rating", movie.Rating.HasValue ? (object)movie.Rating.Value : DBNull.Value);
                 command.Parameters.AddWithValue("@releaseYear", movie.ReleaseYear);
-                command.Parameters.AddWithValue("@description", movie.Description);
+                command.Parameters.AddWithValue("@description", movie.Description ?? (object)DBNull.Value);
                 command.Parameters.AddWithValue("@directorId", directorId);
                 command.Parameters.AddWithValue("@id", movie.Id);
                 await command.ExecuteNonQueryAsync();
@@ -290,9 +290,10 @@ namespace MoviesApp.Repository
                 command.Parameters.AddWithValue("@id", movie.Id);
                 command.Parameters.AddWithValue("@name", movie.Name);
                 command.Parameters.AddWithValue("@duration", movie.Duration);
-                command.Parameters.AddWithValue("@rating", movie.Rating);
+                command.Parameters.AddWithValue("@rating", movie.Rating.HasValue ? (object)movie.Rating.Value : DBNull.Value);
                 command.Parameters.AddWithValue("@releaseYear", movie.ReleaseYear);
-                command.Parameters.AddWithValue("@description", movie.Description);
+                command.Parameters.AddWithValue("@description", movie.Description ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@directorId", directorId);
                 command.Parameters.AddWithValue("@directorId", directorId);
                 await command.ExecuteNonQueryAsync();
             }
@@ -585,32 +586,32 @@ namespace MoviesApp.Repository
         /// </summary>
         /// <param name="id">The unique identifier of the director.</param>
         /// <returns>A DirectorCreateDto containing the director's name, or null if not found.</returns>
-        public async Task<DirectorCreateDto?> GetDirectorByIdAsync(Guid id)
+        public async Task<DirectorCreateDto> GetDirectorByIdAsync(Guid id)
+{
+    var query = "SELECT \"Name\" FROM \"Director\" WHERE \"Id\" = @id;";
+
+    if (_connection.State != System.Data.ConnectionState.Open)
+    {
+        await _connection.OpenAsync();
+    }
+
+    using (var command = new NpgsqlCommand(query, _connection))
+    {
+        command.Parameters.AddWithValue("@id", id);
+        using (var reader = await command.ExecuteReaderAsync())
         {
-            var query = "SELECT \"Name\" FROM \"Director\" WHERE \"Id\" = @id;";
-
-            if (_connection.State != System.Data.ConnectionState.Open)
+            if (await reader.ReadAsync())
             {
-                await _connection.OpenAsync();
-            }
-
-            using (var command = new NpgsqlCommand(query, _connection))
-            {
-                command.Parameters.AddWithValue("@id", id);
-                using (var reader = await command.ExecuteReaderAsync())
+                return new DirectorCreateDto
                 {
-                    if (await reader.ReadAsync())
-                    {
-                        return new DirectorCreateDto
-                        {
-                            Name = reader.GetString(0)
-                        };
-                    }
-                }
+                    Name = reader.GetString(0)
+                };
             }
-
-            return null; // or throw a NotFoundException if you prefer
         }
+    }
+
+    throw new KeyNotFoundException($"Director with Id {id} not found.");
+}
 
 
         /// <summary>

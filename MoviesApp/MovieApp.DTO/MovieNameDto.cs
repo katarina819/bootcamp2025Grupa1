@@ -15,6 +15,6 @@ namespace MoviesApp.DTO
         /// <summary>
         /// Gets or sets the name/title of the movie.
         /// </summary>
-        public string Name { get; set; }
+        public string? Name { get; set; }
     }
 }

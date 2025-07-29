@@ -25,9 +25,10 @@ namespace MoviesApp.Service
         /// Initializes a new instance of the <see cref="MovieService"/> class.
         /// </summary>
         /// <param name="movieRepository">The movie repository.</param>
-        public MovieService(IMovieRepository movieRepository)
+        public MovieService(IMovieRepository movieRepository, IMapper mapper)
         {
             _movieRepository = movieRepository;
+             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
         /// <summary>

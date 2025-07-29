@@ -208,12 +208,10 @@ namespace MoviesApp.WebApi.Controllers
             var movieGenres = await _movieService.GetGenresByMovieIdAsync(id);
             var movieLanguages = await _movieService.GetLanguagesByMovieIdAsync(id);
 
-            string directorName = null;
-            if (movie.DirectorId != null)
-            {
-                var movieDirector = await _movieService.GetDirectorByIdAsync(movie.DirectorId);
-                directorName = movieDirector?.Name;
-            }
+            string? directorName = null;
+            var movieDirector = await _movieService.GetDirectorByIdAsync(movie.DirectorId);
+            directorName = movieDirector?.Name;
+
 
             var movieDetailsDto = new MovieDetailsDto
             {

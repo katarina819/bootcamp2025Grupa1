@@ -46,16 +46,16 @@ namespace MoviesApp.DTO
         /// <summary>
         /// Gets or sets the name of the director of the movie.
         /// </summary>
-        public string DirectorName { get; set; }
+        public string? DirectorName { get; set; }
 
         /// <summary>
         /// Gets or sets the list of genre names associated with the movie.
         /// </summary>
-        public IList<string> Genres { get; set; }
+        public IList<string>? Genres { get; set; }
 
         /// <summary>
         /// Gets or sets the list of language names associated with the movie.
         /// </summary>
-        public IList<string> Languages { get; set; }
+        public IList<string>? Languages { get; set; }
     }
 }
