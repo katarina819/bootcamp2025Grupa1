@@ -6,7 +6,6 @@ create table "Genre" (
 "Name" VARCHAR(100) NOT NULL
 );
 
-DELETE FROM "Genre" WHERE "Id" = '64ddad74-b9c3-4c21-8c6a-b319fe084f34';
 SELECT * FROM "Movie";
 
 INSERT INTO "Genre" ("Name", "Id") VALUES ('Action', '1d81712d-a70b-4695-ac02-491632c216de');
@@ -607,7 +606,11 @@ VALUES ('952ecd07-a015-4180-8f95-8eaaca79f7c7', '6e9c30e4-67c3-4e0a-adc9-f534730
 SELECT * FROM public."MovieFullView";
 
 
-
+SELECT * 
+FROM "MovieLanguage" 
+WHERE "MovieId" = '64ddad74-b9c3-4c21-8c6a-b319fe084f34'
+  AND "LanguageId" = 'fab532b7-8e1d-4dcf-9279-1395ad302dba';
+  
 SELECT * FROM public."MovieFullView"
 WHERE "Id" = '1158d2b7-a297-47c9-b665-e990c874d507';
 
@@ -638,3 +641,72 @@ VALUES ('fad9443a-5894-4c75-bae6-bfa125bf4aa4', 'f6176294-4976-426e-931a-450fbcf
 SELECT * FROM public."MovieFullView";
 
 SELECT * FROM pg_views WHERE viewname = 'MovieFullView';
+
+SELECT * FROM "Movie" WHERE "Id" = '64ddad74-b9c3-4c21-8c6a-b319fe084f34';
+SELECT * FROM "Director" WHERE "Id" = 'a4d04ef6-376e-4ec9-a9a7-f8e0078415a8';
+
+SELECT g.*
+FROM "Genre" g
+JOIN "MovieGenre" mg ON g."Id" = mg."GenreId"
+WHERE mg."MovieId" = '64ddad74-b9c3-4c21-8c6a-b319fe084f34';
+
+SELECT l.*
+FROM "Language" l
+JOIN "MovieLanguage" ml ON l."Id" = ml."LanguageId"
+WHERE ml."MovieId" = '64ddad74-b9c3-4c21-8c6a-b319fe084f34';
+
+
+SELECT m.*
+FROM "Movie" m
+LEFT JOIN "MovieLanguage" ml ON m."Id" = ml."MovieId"
+WHERE ml."LanguageId" IS NULL;
+
+INSERT INTO "MovieGenre" ("MovieId", "GenreId")
+VALUES ('64ddad74-b9c3-4c21-8c6a-b319fe084f34', '02b49d22-cbc3-48fe-a265-85e0e2c81a7f');
+
+DELETE FROM "MovieLanguage" 
+WHERE "MovieId" = '64ddad74-b9c3-4c21-8c6a-b319fe084f34' 
+  AND "LanguageId" = 'fab532b7-8e1d-4dcf-9279-1395ad302dba';
+
+INSERT INTO "MovieLanguage" ("MovieId", "LanguageId")
+VALUES ('64ddad74-b9c3-4c21-8c6a-b319fe084f34', 'fab532b7-8e1d-4dcf-9279-1395ad302dba');
+
+
+SELECT g."Name", g."Id"
+FROM "Genre" g
+JOIN "MovieGenre" mg ON g."Id" = mg."GenreId"
+WHERE mg."MovieId" = '64ddad74-b9c3-4c21-8c6a-b319fe084f34';
+
+SELECT * FROM "MovieGenre"
+WHERE "MovieId" = '64ddad74-b9c3-4c21-8c6a-b319fe084f34';
+
+SELECT * FROM "MovieGenre" WHERE "MovieId" = '64ddad74-b9c3-4c21-8c6a-b319fe084f34';
+
+
+SELECT * 
+FROM "MovieLanguage" 
+WHERE "MovieId" = '64ddad74-b9c3-4c21-8c6a-b319fe084f34';
+
+SELECT m."Id", m."Name"
+FROM "Movie" m
+LEFT JOIN "MovieGenre" mg ON m."Id" = mg."MovieId"
+LEFT JOIN "MovieLanguage" ml ON m."Id" = ml."MovieId"
+LEFT JOIN "Director" d ON m."DirectorId" = d."Id"
+WHERE mg."GenreId" IS NULL
+   OR ml."LanguageId" IS NULL
+   OR m."DirectorId" IS NULL;
+
+
+SELECT l."Id", l."Name"
+FROM "MovieLanguage" ml
+JOIN "Language" l ON ml."LanguageId" = l."Id"
+WHERE ml."MovieId" = '4f9b7010-3b34-43f7-92d1-f40a9eea7440';
+
+INSERT INTO "MovieLanguage" ("MovieId", "LanguageId")
+VALUES ('4f9b7010-3b34-43f7-92d1-f40a9eea7440', 'fab532b7-8e1d-4dcf-9279-1395ad302dba')
+ON CONFLICT DO NOTHING;
+
+
+INSERT INTO "MovieGenre" ("MovieId", "GenreId")
+VALUES ('4f9b7010-3b34-43f7-92d1-f40a9eea7440', '02b49d22-cbc3-48fe-a265-85e0e2c81a7f')
+ON CONFLICT DO NOTHING;
