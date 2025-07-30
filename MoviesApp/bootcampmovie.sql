@@ -309,6 +309,9 @@ select * from "MovieLanguage";
 select * from "MovieGenre";
 select * from "MovieView";
 
+SELECT column_name 
+FROM information_schema.columns 
+WHERE table_name = 'Movie';
 
 
 drop view "MovieFullView";
@@ -371,6 +374,7 @@ ON CONFLICT ("Id") DO NOTHING;
 INSERT INTO "Genre" ("Name", "Id") VALUES ('Fantasy', '02b49d22-cbc3-48fe-a265-85e0e2c81a7f');
 INSERT INTO "Genre" ("Name", "Id") VALUES ('Science Fiction', '3f384fe4-a5f0-45fc-891c-7513e63a4dbc');
 
+DROP TABLE "Movie" CASCADE;
 select * from  "Movie" ;
 CREATE TABLE "Movie" (
 	"Id" uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
