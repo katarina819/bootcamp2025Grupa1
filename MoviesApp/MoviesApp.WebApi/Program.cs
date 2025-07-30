@@ -54,19 +54,14 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 
-var frontendUrl = builder.Configuration["FrontendUrl"] ?? "https://bootcampmovie.netlify.app";
-
-if (string.IsNullOrWhiteSpace(frontendUrl))
-{
-    throw new InvalidOperationException("FrontendUrl configuration is missing or empty.");
-}
-
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowFrontendApp",
-        builder => builder.WithOrigins(frontendUrl)
-                          .AllowAnyMethod()
-                          .AllowAnyHeader());
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins("https://bootcampmovie.netlify.app")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
 });
 
 
@@ -79,7 +74,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseCors("AllowFrontendApp");
+app.UseCors("AllowFrontend");
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
