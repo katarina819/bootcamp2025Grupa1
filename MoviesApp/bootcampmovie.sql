@@ -410,7 +410,7 @@ VALUES
     ('f8ca3c2a-0d89-4c34-8541-1539314f05a5', 'Sergio Leone');
 
 
-select * from MovieFullView;
+select * from "MovieFullView";
 SELECT table_schema, table_name
 FROM information_schema.views
 WHERE table_name ILIKE '%moviefullview%';
