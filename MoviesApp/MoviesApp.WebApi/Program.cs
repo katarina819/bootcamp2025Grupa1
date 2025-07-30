@@ -56,11 +56,12 @@ builder.Services.AddSwaggerGen();
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowFrontend", policy =>
+    options.AddPolicy("AllowNetlify", policy =>
     {
         policy.WithOrigins("https://bootcampmovie.netlify.app")
               .AllowAnyHeader()
-              .AllowAnyMethod();
+              .AllowAnyMethod()
+              .AllowCredentials();
     });
 });
 
@@ -74,7 +75,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseCors("AllowFrontend");
+app.UseCors("AllowNetlify");
 app.UseHttpsRedirection();
 app.UseAuthorization();
 app.MapControllers();
