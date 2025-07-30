@@ -313,6 +313,9 @@ SELECT column_name
 FROM information_schema.columns 
 WHERE table_name = 'Movie';
 
+SELECT *
+FROM "MovieFullView"
+WHERE "Genres" ILIKE '%Fantasy%';
 
 drop view "MovieFullView";
 
@@ -335,6 +338,25 @@ LEFT JOIN "MovieLanguage" ml ON m."Id" = ml."MovieId"
 LEFT JOIN "Language" l ON ml."LanguageId" = l."Id"
 GROUP BY m."Id", m."Name", m."Duration", m."Rating", m."Description", d."Name"; 
 
+CREATE OR REPLACE VIEW "MovieFullView" AS
+SELECT
+    m."Id",
+    m."Name",
+    m."Duration",
+    m."ReleaseYear",
+    m."Rating",
+    m."Description",
+    d."Name" AS "DirectorName",
+    STRING_AGG(DISTINCT g."Name", ', ') AS "Genres",
+    STRING_AGG(DISTINCT l."Name", ', ') AS "Languages"
+FROM "Movie" m
+LEFT JOIN "Director" d ON m."DirectorId" = d."Id"
+LEFT JOIN "MovieGenre" mg ON m."Id" = mg."MovieId"
+LEFT JOIN "Genre" g ON mg."GenreId" = g."Id"
+LEFT JOIN "MovieLanguage" ml ON m."Id" = ml."MovieId"
+LEFT JOIN "Language" l ON ml."LanguageId" = l."Id"
+GROUP BY
+    m."Id", m."Name", m."Duration", m."ReleaseYear", m."Rating", m."Description", d."Name";
 
 SELECT m.*
 FROM "Movie" m
@@ -411,9 +433,6 @@ VALUES
 
 
 select * from "MovieFullView";
-SELECT table_schema, table_name
-FROM information_schema.views
-WHERE table_name ILIKE '%moviefullview%';
 SELECT * FROM "MovieFullView";
 
 SELECT table_schema, table_name
@@ -624,3 +643,7 @@ WHERE "MovieId" = 'fad9443a-5894-4c75-bae6-bfa125bf4aa4';
 COMMIT;
 INSERT INTO public."MovieLanguage" ("MovieId", "LanguageId")
 VALUES ('fad9443a-5894-4c75-bae6-bfa125bf4aa4', 'f6176294-4976-426e-931a-450fbcf2614b');
+
+
+SELECT * FROM "MovieFullView";
+SELECT * FROM pg_views WHERE viewname = 'MovieFullView';
