@@ -199,35 +199,36 @@ namespace MoviesApp.WebApi.Controllers
         /// <param name="id">ID of the movie.</param>
         /// <returns>Movie details DTO.</returns>
         [HttpGet("details/{id}")]
-        public async Task<ActionResult<MovieDetailsDto>> GetMovieDetails(Guid id)
-        {
-            var movie = await _movieService.GetMovieByIdAsync(id);
-            if (movie == null)
-                return NotFound($"Movie with id: {id} doesn't exist.");
+public async Task<ActionResult<MovieDetailsDto>> GetMovieDetails(Guid id)
+{
+    var movie = await _movieService.GetMovieByIdAsync(id);
+    if (movie == null)
+        return NotFound($"Movie with id: {id} doesn't exist.");
 
-            var movieGenres = await _movieService.GetGenresByMovieIdAsync(id);
-            var movieLanguages = await _movieService.GetLanguagesByMovieIdAsync(id);
+    var movieGenres = await _movieService.GetGenresByMovieIdAsync(id);
+    var movieLanguages = await _movieService.GetLanguagesByMovieIdAsync(id);
 
-            string? directorName = null;
-            var movieDirector = await _movieService.GetDirectorByIdAsync(movie.DirectorId);
-            directorName = movieDirector?.Name;
+    // Direktno koristimo movie.DirectorId jer nije nullable
+    var movieDirector = await _movieService.GetDirectorByIdAsync(movie.DirectorId);
+    string? directorName = movieDirector?.Name;
+
+    var movieDetailsDto = new MovieDetailsDto
+    {
+        Id = movie.Id,
+        Name = movie.Name,
+        Duration = movie.Duration,
+        Rating = movie.Rating,
+        ReleaseYear = movie.ReleaseYear,
+        Description = movie.Description,
+        DirectorName = directorName,
+        Genres = movieGenres,
+        Languages = movieLanguages
+    };
+
+    return Ok(movieDetailsDto);
+}
 
 
-            var movieDetailsDto = new MovieDetailsDto
-            {
-                Id = movie.Id,
-                Name = movie.Name,
-                Duration = movie.Duration,
-                Rating = movie.Rating,
-                ReleaseYear = movie.ReleaseYear,
-                Description = movie.Description,
-                DirectorName = directorName,
-                Genres = movieGenres,
-                Languages = movieLanguages
-            };
-
-            return Ok(movieDetailsDto);
-        }
 
         /// <summary>
         /// Retrieves a list of movie names filtered by a given substring.

@@ -710,3 +710,12 @@ ON CONFLICT DO NOTHING;
 INSERT INTO "MovieGenre" ("MovieId", "GenreId")
 VALUES ('4f9b7010-3b34-43f7-92d1-f40a9eea7440', '02b49d22-cbc3-48fe-a265-85e0e2c81a7f')
 ON CONFLICT DO NOTHING;
+
+DELETE FROM "MovieFullView" WHERE "Id" = '4f9b7010-3b34-43f7-92d1-f40a9eea7440';
+
+DELETE FROM "MovieGenre" WHERE "MovieId" = '4f9b7010-3b34-43f7-92d1-f40a9eea7440';
+DELETE FROM "MovieLanguage" WHERE "MovieId" = '4f9b7010-3b34-43f7-92d1-f40a9eea7440';
+DELETE FROM "Movie" WHERE "Id" = '4f9b7010-3b34-43f7-92d1-f40a9eea7440';
+
+
+
