@@ -115,9 +115,8 @@ LEFT JOIN "Genre" g ON mg."GenreId" = g."Id"
 GROUP BY m."Id", m."Name", m."Duration", m."Rating", m."ReleaseYear", m."Description"
 ORDER BY m."Name";
 
-select * from "MovieView";
+SELECT * FROM public."MovieFullView";
 
-drop view "MovieView";
 CREATE VIEW "MovieView" AS
 SELECT
 	m."Id",
@@ -149,8 +148,6 @@ LEFT JOIN "Genre" g ON bg."genreId" = g."Id"
 GROUP BY b."Id", b."Title", b."Author", p."publisherName", b."Year", b."ISBN";
 SELECT * FROM "BookDetails";
 
-drop table "Director";
-
 CREATE TABLE "Director"(
     "Id" uuid PRIMARY KEY DEFAULT gen_random_uuid(),
     "Name" varchar(100)
@@ -172,12 +169,6 @@ VALUES
 
 
 SELECT COALESCE(Genre, '') AS Genre, MovieId, Title FROM Movies;
-
-drop table "MovieLanguage";
-drop table "MovieGenre";
-DROP TABLE IF EXISTS "Movie";
-DROP TABLE "Movie" CASCADE;
-
 
 
 CREATE TABLE "Director"(
@@ -313,11 +304,9 @@ SELECT column_name
 FROM information_schema.columns 
 WHERE table_name = 'Movie';
 
-SELECT *
-FROM "MovieFullView"
+SELECT * FROM public."MovieFullView"
 WHERE "Genres" ILIKE '%Fantasy%';
 
-drop view "MovieFullView";
 
 CREATE VIEW "MovieFullView" AS
 SELECT
@@ -364,8 +353,7 @@ JOIN "MovieGenre" mg ON m."Id" = mg."MovieId"
 JOIN "Genre" g ON mg."GenreId" = g."Id"
 WHERE g."Name" IN ('Science Fiction', 'Fantasy');
 
-
-drop view "MovieFullView";
+SELECT * FROM pg_views WHERE viewname = 'MovieFullView';
 CREATE VIEW "MovieFullView" AS
 SELECT
 	m."Id",
@@ -396,7 +384,6 @@ ON CONFLICT ("Id") DO NOTHING;
 INSERT INTO "Genre" ("Name", "Id") VALUES ('Fantasy', '02b49d22-cbc3-48fe-a265-85e0e2c81a7f');
 INSERT INTO "Genre" ("Name", "Id") VALUES ('Science Fiction', '3f384fe4-a5f0-45fc-891c-7513e63a4dbc');
 
-DROP TABLE "Movie" CASCADE;
 select * from  "Movie" ;
 CREATE TABLE "Movie" (
 	"Id" uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -432,8 +419,10 @@ VALUES
     ('f8ca3c2a-0d89-4c34-8541-1539314f05a5', 'Sergio Leone');
 
 
-select * from "MovieFullView";
-SELECT * FROM "MovieFullView";
+SELECT * FROM public."MovieFullView";
+
+SELECT * FROM public."MovieFullView";
+
 
 SELECT table_schema, table_name
 FROM information_schema.views
@@ -559,13 +548,12 @@ FROM "MovieGenre" mg
 JOIN "Genre" g ON mg."GenreId" = g."Id"
 LIMIT 10;
 
-SELECT * FROM "MovieFullView" LIMIT 1;
+SELECT * FROM public."MovieFullView" LIMIT 1;
 
 SELECT definition
 FROM pg_views
-WHERE viewname = 'MovieFullView';
+WHERE viewname = "MovieFullView";
 
-DROP VIEW IF EXISTS "MovieFullView";
 
 CREATE VIEW "MovieFullView" AS
 SELECT 
@@ -616,10 +604,11 @@ VALUES ('4f99c57f-51fd-450e-ac7a-ecb1e64c47e7', '4cb2d11b-ab3a-4917-942a-fb5bf68
 INSERT INTO "MovieLanguage" ("MovieId", "LanguageId")
 VALUES ('952ecd07-a015-4180-8f95-8eaaca79f7c7', '6e9c30e4-67c3-4e0a-adc9-f5347303f555');
 
-SELECT * FROM "MovieFullView";
+SELECT * FROM public."MovieFullView";
 
 
-SELECT * FROM "MovieFullView"
+
+SELECT * FROM public."MovieFullView"
 WHERE "Id" = '1158d2b7-a297-47c9-b665-e990c874d507';
 
 
@@ -635,8 +624,9 @@ SHOW search_path;
 
 
 
+SELECT * FROM public."MovieFullView";
 
-
+SELECT schemaname, viewname FROM pg_views WHERE viewname = 'MovieFullView' OR viewname = 'moviefullview';
 
 SELECT * FROM public."MovieLanguage"
 WHERE "MovieId" = 'fad9443a-5894-4c75-bae6-bfa125bf4aa4';
@@ -645,5 +635,6 @@ INSERT INTO public."MovieLanguage" ("MovieId", "LanguageId")
 VALUES ('fad9443a-5894-4c75-bae6-bfa125bf4aa4', 'f6176294-4976-426e-931a-450fbcf2614b');
 
 
-SELECT * FROM "MovieFullView";
+SELECT * FROM public."MovieFullView";
+
 SELECT * FROM pg_views WHERE viewname = 'MovieFullView';
